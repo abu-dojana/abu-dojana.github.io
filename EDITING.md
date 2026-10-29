@@ -6,7 +6,7 @@ Your public website is <https://abu-dojana.github.io/>. Your editing dashboard i
 
 1. Sign in to Pages CMS with the GitHub account that owns `abu-dojana/abu-dojana.github.io`.
 2. Authorize its GitHub App for this repository if it has not been connected yet.
-3. Open the repository and select **master** for live website edits. The development branch is for testing before launch.
+3. Open the repository and select **main** for live website edits. The development branch is for testing before launch.
 4. The sidebar should show **Entries**, **Categories**, **Pages**, **Profile, homepage & navigation**, **CV sections**, and media.
 
 The public repository, including its history, is readable by anyone. A draft stays off the rendered website, but its file is still public. Keep private notes, addresses, transcripts, and private contact details out of this dashboard.
@@ -74,14 +74,14 @@ Use the website's **System / Light / Dark** control. System follows the device s
 
 ## Did the edit publish?
 
-1. Confirm you edited **master**, saved, and enabled publishing on the entry/page.
+1. Confirm you edited **main**, saved, and enabled publishing on the entry/page.
 2. Open the repository's **Actions** tab: <https://github.com/abu-dojana/abu-dojana.github.io/actions>.
 3. Find the **Check and publish website** run for your commit. Wait for build and deployment to finish.
 4. Open the live page and reload it. A successful CMS save alone does not prove a deployment succeeded.
 
 If validation or tests fail, the previous successful site remains available. Open the failed step to read its error. Common causes are duplicate URL names, references to a deleted category/CV section/page, or an invalid link/date. Correct the affected fields and save again. Before deleting a category or CV section, remove or replace references to it on entries and menu items.
 
-If the dashboard saves on a development branch, those changes are not live until merged into `master`. The implementation must pull those dashboard edits before merging so they are retained.
+If the dashboard saves on a development branch, those changes are not live until merged into `main`. The implementation must pull those dashboard edits before merging so they are retained.
 
 ## Recovery
 

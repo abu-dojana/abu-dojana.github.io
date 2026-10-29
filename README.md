@@ -38,12 +38,12 @@ The initial profile fields are intentionally blank. Example entries are visibly 
 - `.pages.yml`: forms for the hosted editor.
 - `src/lib/content.ts`: validated loading, stable references, and sanitized Markdown.
 - `src/lib/cv.ts`: selection, ordering, honest demo handling, and local storage whitelist.
-- `.github/workflows/deploy.yml`: checks and publishes successful `master` builds to GitHub Pages.
+- `.github/workflows/deploy.yml`: checks and publishes successful `main` builds to GitHub Pages.
 
 Private text entered in the CV builder stays in memory. Only CV selections/order and theme preferences are stored on the current browser. This site has no analytics, backend account database, or private cloud CV storage. All repository files and history—including drafts—are public.
 
 ## Publishing and recovery
 
-GitHub Pages uses GitHub Actions, with `master` as the publishing branch. A CMS save creates a commit, then checks/tests/build run before deployment. A failed build does not replace the last successful deployment. Set the GitHub repository variable `SITE_URL` when switching to a custom domain.
+GitHub Pages uses GitHub Actions, with `main` as the publishing branch. A CMS save creates a commit, then checks/tests/build run before deployment. A failed build does not replace the last successful deployment. Set the GitHub repository variable `SITE_URL` when switching to a custom domain.
 
 The previous AcademicPages starter is preserved in the Git tag `legacy-academicpages-2026-10-29`. Do not delete that recovery point. The new site is an Astro build, so restoration also requires restoring the old branch-based Jekyll publishing setting; see the editing guide.
