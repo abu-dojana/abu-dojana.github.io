@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSite } from '../../lib/content';
+import type { Page, SiteContent } from '../../lib/types';
+export function getStaticPaths() {
+  const site = getSite();
+  return site.pages.filter((page) => page.published).map((page) => ({ params: { slug: page.slug }, props: { page, site } }));
+}
+const { page, site } = Astro.props as { page: Page; site: SiteContent };
+const isAbout = page.slug === 'about';
+---
+<BaseLayout title={page.title} description={page.summary} active={page.id}>
+  <article class="container standalone-page">
+    <a class="breadcrumb" href="/">← Home</a>
+    <header class="standalone-heading"><p class="eyebrow">{isAbout ? 'The person behind the pages' : 'A page in the notebook'}</p><h1 class="page-heading">{page.title}<span>.</span></h1>{page.summary && <p class="standalone-summary muted">{page.summary}</p>}{page.example && <p class="sample-notice">Example page · Replace this starter text with your own story.</p>}</header>
+    <div class="standalone-content"><div class="prose" set:html={page.html}></div></div>
+    {isAbout && (site.settings.skills.length > 0 || site.settings.links.length > 0 || site.settings.email || site.settings.location) && <aside class="profile-details">
+      {site.settings.skills.length > 0 && <div><h2 class="eyebrow">Things I work with</h2><div class="skill-list">{site.settings.skills.map((skill) => <span class="pill">{skill}</span>)}</div></div>}
+      {(site.settings.email || site.settings.location || site.settings.links.length > 0) && <div><h2 class="eyebrow">Elsewhere & in touch</h2>{site.settings.location && <p class="muted">{site.settings.location}</p>}<div class="profile-links">{site.settings.email && <a href={`mailto:${site.settings.email}`}>{site.settings.email} <span aria-hidden="true">↗</span></a>}{site.settings.links.map((link) => <a href={link.url} rel="noopener noreferrer">{link.label} <span aria-hidden="true">↗</span></a>)}</div></div>}
+    </aside>}
+  </article>
+</BaseLayout>
+<style>
+  .standalone-page { padding-block: 2.5rem 5rem; }
+  .standalone-heading { max-width: 800px; margin: 3rem auto 2rem; }
+  .standalone-heading h1 { margin-block: 1rem; padding: 0; max-width: none; }
+  .standalone-heading h1 span { color: var(--accent); }
+  .standalone-summary { max-width: 58ch; font-size: 1.1rem; line-height: 1.8; }
+  .sample-notice { display: inline-block; border: 1px dashed var(--line); padding: .5rem .75rem; color: var(--muted); font-size: .72rem; border-radius: 4px; }
+  .standalone-content { max-width: 800px; margin-inline: auto; }
+  .profile-details { max-width: 800px; margin: 3rem auto 0; border-top: 1px solid var(--line); padding-top: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .profile-details h2 { margin: 0 0 1rem; }
+  .skill-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .profile-links { display: flex; flex-direction: column; gap: .7rem; font-size: .85rem; }
+  .profile-links a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 600px) { .standalone-heading { margin-top: 2rem; } .profile-details { grid-template-columns: 1fr; } }
+</style>

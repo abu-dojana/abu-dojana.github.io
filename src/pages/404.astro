@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Page not found" description="This page is missing from the notebook.">
+  <section class="container not-found"><p class="eyebrow">A small wrong turn</p><p class="large-number" aria-hidden="true">404</p><h1>This page wandered off.</h1><p class="muted">The link may have changed, or this page hasn’t been written yet.<br />There are still plenty of other paths to follow.</p><div class="not-found-actions"><a class="button" href="/explore/">Explore the notebook <span aria-hidden="true">↗</span></a><a class="button secondary" href="/">Back home</a></div></section>
+</BaseLayout>
+<style>
+  .not-found { text-align: center; padding-block: 5rem 6rem; }
+  .large-number { font-family: var(--serif); font-size: clamp(6rem, 16vw, 11rem); letter-spacing: -.08em; line-height: 1; margin: 1.5rem 0; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(2rem, 4vw, 3rem); font-weight: 450; letter-spacing: -.04em; }
+  .not-found > p:last-of-type { line-height: 1.8; }
+  .not-found-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
+</style>

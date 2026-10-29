@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CvDocument from '../../components/CvDocument.astro';
+import { getSite } from '../../lib/content';
+import { createCvModel } from '../../lib/cv';
+import '../../styles/cv.css';
+
+const site = getSite();
+const model = createCvModel(site);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+
+<BaseLayout title="CV" description="A concise CV, drawn from the same content as this website." active="cv">
+  <section class="cv-page">
+    <div class="cv-page-intro cv-app-only">
+      <p class="cv-eyebrow">A considered introduction</p>
+      <h1>Curriculum vitae</h1>
+      <p>A focused view of experience, learning, and selected work.</p>
+    </div>
+    {model.ready ? (
+      <>
+        <div class="cv-toolbar cv-app-only">
+          <a class="cv-button cv-button-primary" href={`${base}cv/build/`}>Tailor this CV <span aria-hidden="true">↗</span></a>
+          <button class="cv-button" type="button" data-cv-print>Print / Save as PDF</button>
+          <p>Choose “Save as PDF” in your browser’s print dialog.</p>
+        </div>
+        <CvDocument model={model} />
+      </>
+    ) : (
+      <div class="cv-setup cv-app-only">
+        <span class="cv-setup-mark" aria-hidden="true">↗</span>
+        <h2>A CV starts with your story.</h2>
+        <p>This profile is still being prepared. A CV will appear here once a name and at least one real CV entry have been added.</p>
+        <p>In the editor, add your profile name, create an entry, and choose its CV section and inclusion setting.</p>
+        <a class="cv-button cv-button-primary" href={`${base}cv/build/?demo=1`}>Try the example CV builder <span aria-hidden="true">→</span></a>
+        <p class="cv-small">The preview is clearly labelled and makes no claims about this profile.</p>
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<script>
+  document.querySelector<HTMLButtonElement>('[data-cv-print]')?.addEventListener('click', () => window.print());
+</script>

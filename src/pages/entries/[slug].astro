@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSite, formatDate } from '../../lib/content';
+import type { Entry, SiteContent } from '../../lib/types';
+export function getStaticPaths() {
+  const site = getSite();
+  return site.entries.filter((entry) => entry.published).map((entry) => ({ params: { slug: entry.slug }, props: { entry, site } }));
+}
+const { entry, site } = Astro.props as { entry: Entry; site: SiteContent };
+const categories = site.categories.filter((category) => entry.categories.includes(category.id));
+const progressLabels = { planned: 'Planned', 'in-progress': 'In progress', completed: 'Completed' };
+---
+<BaseLayout title={entry.title} description={entry.summary} active="explore">
+  <article class="container entry-page">
+    <a class="breadcrumb" href="/explore/">← Back to the notebook</a>
+    <header class="entry-heading">
+      <div class="entry-topics">{categories.map((category) => <a href={`/categories/${category.slug}/`}>{category.title}</a>)}{entry.example && <span class="example-label">Example entry</span>}</div>
+      <h1>{entry.title}</h1>
+      <p class="entry-summary">{entry.summary}</p>
+      <div class="entry-byline">{entry.date && <span>{formatDate(entry.date)}{entry.endDate ? ` — ${formatDate(entry.endDate)}` : ''}</span>}<span>{entry.readingMinutes} min read</span>{entry.progress && <span>{progressLabels[entry.progress]}</span>}</div>
+    </header>
+    {entry.cover && <figure class="entry-cover"><img src={entry.cover} alt={entry.coverAlt || ''} width="1200" height="800" /></figure>}
+    <div class="entry-content">
+      <div class="entry-body"><div class="prose" set:html={entry.html}></div>{entry.tags.length > 0 && <div class="entry-tags" aria-label="Tags">{entry.tags.map((tag) => <a class="pill" href={`/explore/?tag=${encodeURIComponent(tag)}`}>#{tag}</a>)}</div>}</div>
+      {(entry.details.length > 0 || entry.links.length > 0 || entry.example) && <aside class="entry-aside">
+        {entry.example && <div class="example-note"><p class="eyebrow">An example page</p><p>This entry demonstrates the notebook. It describes sample content, not a personal accomplishment.</p></div>}
+        {entry.details.length > 0 && <dl class="entry-details">{entry.details.map((detail) => <div><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>}
+        {entry.links.length > 0 && <div class="entry-links"><p class="eyebrow">Follow the links</p>{entry.links.map((link) => <a href={link.url} rel="noopener noreferrer">{link.label}<span aria-hidden="true">↗</span></a>)}</div>}
+      </aside>}
+    </div>
+    <footer class="entry-footer"><span>End of this page. There’s always another.</span><a href="/explore/">Keep exploring <span aria-hidden="true">→</span></a></footer>
+  </article>
+</BaseLayout>
+<style>
+  .entry-page { padding-block: 2.5rem 4rem; }
+  .entry-heading { max-width: 840px; margin: 3rem auto 2.5rem; }
+  .entry-topics { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; text-transform: uppercase; font-size: .65rem; letter-spacing: .1em; font-weight: 600; }
+  .entry-topics a { color: var(--accent); text-decoration: none; }
+  .example-label { border: 1px dashed var(--line); padding: .2rem .45rem; border-radius: 3px; color: var(--muted); }
+  h1 { font-family: var(--serif); font-size: clamp(2.6rem, 5.3vw, 4.6rem); font-weight: 450; line-height: 1.08; letter-spacing: -.045em; margin: 1.2rem 0; text-wrap: balance; }
+  .entry-summary { color: var(--muted); font-size: 1.1rem; line-height: 1.8; max-width: 65ch; }
+  .entry-byline { display: flex; gap: .75rem 1.5rem; flex-wrap: wrap; color: var(--muted); font-size: .7rem; margin-top: 1.5rem; }
+  .entry-cover { margin: 0 0 3rem; border-radius: var(--radius); overflow: hidden; background: var(--surface-alt); }
+  .entry-cover img { width: 100%; height: auto; display: block; max-height: 550px; object-fit: cover; }
+  .entry-content { display: flex; gap: clamp(2rem, 5vw, 5rem); max-width: 960px; margin-inline: auto; }
+  .entry-body { flex: 1; min-width: 0; }
+  .entry-aside { width: 225px; flex-shrink: 0; }
+  .example-note { padding: 1.1rem; border: 1px dashed var(--line); border-radius: var(--radius); font-size: .76rem; color: var(--muted); line-height: 1.7; margin-bottom: 2rem; }
+  .example-note p { margin: 0; }
+  .example-note p + p { margin-top: .7rem; }
+  .entry-details { margin: 0 0 2rem; font-size: .83rem; }
+  .entry-details > div { padding: .85rem 0; border-bottom: 1px solid var(--line); }
+  .entry-details dt { text-transform: uppercase; letter-spacing: .08em; font-size: .62rem; color: var(--muted); font-weight: 600; margin-bottom: .35rem; }
+  .entry-details dd { margin: 0; overflow-wrap: anywhere; }
+  .entry-links a { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--accent); text-decoration: none; font-size: .8rem; padding: .65rem 0; border-bottom: 1px solid var(--line); }
+  .entry-tags { display: flex; gap: .5rem; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 1.5rem; margin-top: 2rem; }
+  .entry-tags a { text-decoration: none; }
+  .entry-footer { border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 1rem; margin-top: 4rem; padding-top: 1.5rem; font-size: .77rem; color: var(--muted); }
+  .entry-footer a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 700px) { .entry-heading { margin-top: 2rem; } .entry-content { flex-direction: column; } .entry-aside { width: 100%; } .entry-cover { margin-bottom: 2rem; } .entry-footer { flex-direction: column; } }
+</style>

@@ -1,0 +1,62 @@
+---
+import { getSite, navHref } from '../lib/content';
+import '../styles/global.css';
+interface Props { title?: string; description?: string; active?: string; wide?: boolean }
+const { title, description, wide = false } = Astro.props;
+const site = getSite();
+const { settings } = site;
+const pageTitle = title ? `${title} · ${settings.siteTitle}` : `${settings.siteTitle} · An open notebook`;
+const pageDescription = description || settings.homeDescription || 'A personal collection of work, stories, experiments, and things worth remembering.';
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={pageDescription} />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f8f7f2" />
+    {settings.preview && <meta name="robots" content="noindex, nofollow" />}
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <script is:inline>
+      try { const t = localStorage.getItem('notebook-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    {settings.preview && <div class="preview-strip"><span class="preview-dot"></span> A work in progress <span class="preview-divider">/</span> Example entries are labeled. Make this space your own.</div>}
+    <header class="site-header">
+      <div class="header-inner container">
+        <a href="/" class="wordmark" aria-label={`${settings.siteTitle}, home`}><span class="brand-mark" aria-hidden="true">a<span>↗</span></span><span>{settings.siteTitle}<small>A PERSONAL NOTEBOOK</small></span></a>
+        <nav class="site-nav" aria-label="Main navigation">
+          {settings.navigation.filter(n => n.visible).map(item => <a href={navHref(item, site)} aria-current={Astro.url.pathname === navHref(item, site) ? 'page' : undefined}>{item.label}</a>)}
+        </nav>
+        <div class="theme-picker"><label for="theme-select" class="sr-only">Color theme</label><span aria-hidden="true">◐</span><select id="theme-select" aria-label="Color theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+      </div>
+    </header>
+    <main id="main" class:list={[{ 'wide-page': wide }]}><slot /></main>
+    <footer class="site-footer container">
+      <div><a href="/" class="footer-name">{settings.siteTitle}<span aria-hidden="true"> ↗</span></a><p>{settings.footerNote || 'A little work. A little life. Always in progress.'}</p></div>
+      <div class="footer-links">{settings.email && <a href={`mailto:${settings.email}`}>Say hello ↗</a>}{settings.links.map(link => <a href={link.url}>{link.label} ↗</a>)}<a href="https://app.pagescms.org/" class="editor-link">Edit this space ↗</a><small>© {new Date().getUTCFullYear()} · Built with curiosity.</small></div>
+    </footer>
+    <script>
+      const picker = document.querySelector<HTMLSelectElement>('#theme-select');
+      if (picker) {
+        try { picker.value = localStorage.getItem('notebook-theme') || 'system'; } catch {}
+        picker.addEventListener('change', () => {
+          const theme = picker.value;
+          if (theme === 'system') delete document.documentElement.dataset.theme;
+          else document.documentElement.dataset.theme = theme;
+          try { if (theme === 'system') localStorage.removeItem('notebook-theme'); else localStorage.setItem('notebook-theme', theme); } catch {}
+        });
+      }
+    </script>
+  </body>
+</html>

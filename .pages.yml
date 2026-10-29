@@ -1,0 +1,427 @@
+media:
+  - name: images
+    label: Images
+    input: public/images
+    output: /images
+    extensions: [jpg, jpeg, png, webp, gif, avif, svg]
+    rename: safe
+
+components:
+  record-id:
+    type: uuid
+    label: Record ID
+    description: Generated automatically. Keep this unchanged so links and saved CV selections continue working.
+    options:
+      editable: false
+      generate: false
+  slug:
+    type: string
+    label: URL name
+    required: true
+    description: Lowercase words separated by hyphens. Keep this unchanged after sharing a link.
+    pattern:
+      regex: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      message: Use lowercase letters, numbers, and single hyphens between words.
+  link:
+    type: object
+    fields:
+      - name: label
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+        description: A full https:// address or a path beginning with /.
+  menu-home:
+    label: Home link
+    type: object
+    fields:
+      - name: id
+        component: record-id
+      - name: label
+        type: string
+        required: true
+        default: Home
+      - name: visible
+        type: boolean
+        default: true
+  menu-explore:
+    label: Explore link
+    type: object
+    fields:
+      - name: id
+        component: record-id
+      - name: label
+        type: string
+        required: true
+        default: Explore
+      - name: visible
+        type: boolean
+        default: true
+  menu-page:
+    label: Page link
+    type: object
+    fields:
+      - name: id
+        component: record-id
+      - name: label
+        type: string
+        required: true
+      - name: target
+        label: Page
+        type: reference
+        required: true
+        options:
+          collection: pages
+          value: '{fields.id}'
+          label: '{fields.title}'
+      - name: visible
+        type: boolean
+        default: true
+  menu-category:
+    label: Category link
+    type: object
+    fields:
+      - name: id
+        component: record-id
+      - name: label
+        type: string
+        required: true
+      - name: target
+        label: Category
+        type: reference
+        required: true
+        options:
+          collection: categories
+          value: '{fields.id}'
+          label: '{fields.title}'
+      - name: visible
+        type: boolean
+        default: true
+  menu-cv:
+    label: CV link
+    type: object
+    fields:
+      - name: id
+        component: record-id
+      - name: label
+        type: string
+        required: true
+        default: CV
+      - name: visible
+        type: boolean
+        default: true
+  menu-external:
+    label: External link
+    type: object
+    fields:
+      - name: id
+        component: record-id
+      - name: label
+        type: string
+        required: true
+      - name: target
+        label: Destination URL
+        type: string
+        required: true
+        description: A complete https:// address.
+      - name: visible
+        type: boolean
+        default: true
+
+content:
+  - name: entries
+    label: Entries
+    type: collection
+    path: content/entries
+    format: yaml-frontmatter
+    filename: '{fields.slug}.md'
+    view:
+      primary: title
+    fields:
+      - name: id
+        component: record-id
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: slug
+        component: slug
+      - name: summary
+        label: Short description
+        type: text
+        required: true
+      - name: published
+        label: Publish on the website
+        type: boolean
+        default: false
+        description: Drafts stay off the website, but their files are still readable in the public repository.
+      - name: example
+        label: This is example content
+        type: boolean
+        default: false
+        description: Examples receive a visible label and are excluded from the real default CV.
+      - name: featured
+        label: Feature on the homepage
+        type: boolean
+        default: false
+      - name: categories
+        label: Categories
+        type: reference
+        options:
+          collection: categories
+          multiple: true
+          value: '{fields.id}'
+          label: '{fields.title}'
+      - name: tags
+        label: Tags
+        type: string
+        list: true
+      - name: date
+        label: Publication or start date
+        type: string
+        description: Optional. Use YYYY-MM-DD, for example 2026-10-29.
+        pattern: '^$|^\d{4}-\d{2}-\d{2}$'
+      - name: endDate
+        label: End date
+        type: string
+        description: Optional. Use YYYY-MM-DD.
+        pattern: '^$|^\d{4}-\d{2}-\d{2}$'
+      - name: progress
+        label: Progress
+        type: select
+        options:
+          values:
+            - name: ''
+              label: Not applicable
+            - name: planned
+              label: Planned
+            - name: in-progress
+              label: In progress
+            - name: completed
+              label: Completed
+      - name: cover
+        label: Cover image
+        type: image
+        options:
+          media: images
+      - name: coverAlt
+        label: Image description
+        type: string
+        description: Describe the image for someone who cannot see it.
+      - name: details
+        label: Additional details
+        type: object
+        list: true
+        description: Add any labeled information, such as a role, location, organization, or equipment type.
+        fields:
+          - name: label
+            type: string
+            required: true
+          - name: value
+            type: string
+            required: true
+      - name: links
+        label: Supporting links
+        component: link
+        list: true
+      - name: body
+        label: Full story
+        type: rich-text
+        options:
+          format: markdown
+          media: images
+          switcher: true
+      - name: cv
+        label: CV version
+        type: object
+        description: A short presentation for the CV builder, independent of the public categories.
+        fields:
+          - name: include
+            label: Offer this entry in the CV builder
+            type: boolean
+            default: false
+          - name: section
+            label: CV section
+            type: reference
+            options:
+              collection: cv-sections
+              value: '{fields.id}'
+              label: '{fields.title}'
+          - name: title
+            label: CV title
+            type: string
+            description: Leave blank to use the entry title.
+          - name: subtitle
+            label: Role, organization, or subtitle
+            type: string
+          - name: date
+            label: CV date or date range
+            type: string
+            description: For example September 2025 – Present. Keep planned qualifications accurately labeled.
+          - name: bullets
+            label: Concise CV bullets
+            type: string
+            list: true
+          - name: order
+            label: Default position within its section
+            type: number
+            default: 0
+
+  - name: categories
+    label: Categories
+    type: collection
+    path: content/categories
+    format: json
+    filename: '{fields.slug}.json'
+    view:
+      primary: title
+    fields:
+      - name: id
+        component: record-id
+      - name: title
+        label: Category name
+        type: string
+        required: true
+      - name: slug
+        component: slug
+      - name: description
+        label: Introduction
+        type: text
+      - name: order
+        label: Position in category lists
+        type: number
+        default: 0
+
+  - name: pages
+    label: Pages
+    type: collection
+    path: content/pages
+    format: yaml-frontmatter
+    filename: '{fields.slug}.md'
+    view:
+      primary: title
+    fields:
+      - name: id
+        component: record-id
+      - name: title
+        label: Page heading
+        type: string
+        required: true
+      - name: slug
+        component: slug
+      - name: summary
+        label: Short description
+        type: text
+      - name: published
+        label: Publish on the website
+        type: boolean
+        default: false
+      - name: example
+        label: This is example content
+        type: boolean
+        default: false
+      - name: body
+        label: Page content
+        type: rich-text
+        options:
+          format: markdown
+          media: images
+
+  - name: site
+    label: Profile, homepage & navigation
+    type: file
+    path: content/site.json
+    format: json
+    fields:
+      - name: siteTitle
+        label: Website name
+        type: string
+        required: true
+      - name: name
+        label: Your name for the CV
+        type: string
+      - name: headline
+        label: Professional headline
+        type: string
+      - name: bio
+        label: Short introduction / CV summary
+        type: text
+      - name: email
+        label: Public email
+        type: string
+        description: Leave blank if you do not want it in the public repository or website.
+      - name: location
+        label: Public location
+        type: string
+        description: Optional city or country. Do not enter a private address.
+      - name: links
+        label: Public profile links
+        component: link
+        list: true
+      - name: skills
+        label: Skills you can demonstrate
+        type: string
+        list: true
+      - name: homeEyebrow
+        label: Homepage small heading
+        type: string
+      - name: homeTitle
+        label: Homepage title
+        type: text
+      - name: homeDescription
+        label: Homepage introduction
+        type: text
+      - name: footerNote
+        label: Footer note
+        type: string
+      - name: preview
+        label: Preview mode
+        type: boolean
+        default: true
+        description: Shows a starter notice and asks search engines not to index the site. Turn off after adding real content.
+      - name: navigation
+        label: Navigation menu
+        type: block
+        list: true
+        blockKey: type
+        description: Add a destination, choose its label, then reorder the items. Categories are not added automatically.
+        blocks:
+          - name: home
+            label: Home
+            component: menu-home
+          - name: explore
+            label: Explore everything
+            component: menu-explore
+          - name: page
+            label: A page
+            component: menu-page
+          - name: category
+            label: A category
+            component: menu-category
+          - name: cv
+            label: CV
+            component: menu-cv
+          - name: external
+            label: External website
+            component: menu-external
+
+  - name: cv-sections
+    label: CV sections
+    type: collection
+    path: content/cv-sections
+    format: json
+    filename: '{fields.id}.json'
+    view:
+      primary: title
+    fields:
+      - name: id
+        component: record-id
+      - name: title
+        label: Section heading
+        type: string
+        required: true
+      - name: order
+        label: Default section position
+        type: number
+        default: 0

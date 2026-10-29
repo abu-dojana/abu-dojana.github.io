@@ -1,0 +1,21 @@
+{
+  "siteTitle": "Abu Dojana",
+  "name": "",
+  "headline": "",
+  "bio": "",
+  "email": "",
+  "location": "",
+  "links": [],
+  "skills": [],
+  "homeEyebrow": "A personal corner of the internet",
+  "homeTitle": "Curiosity doesn't fit\nin one category.",
+  "homeDescription": "A place for the work, the detours, and everything in between. An open notebook for things made, things learned, and places along the way.",
+  "footerNote": "A little work. A little wonder. Always a work in progress.",
+  "preview": true,
+  "navigation": [
+    { "id": "30000000-0000-4000-8000-000000000001", "label": "Home", "type": "home", "target": "", "visible": true },
+    { "id": "30000000-0000-4000-8000-000000000002", "label": "Explore", "type": "explore", "target": "", "visible": true },
+    { "id": "30000000-0000-4000-8000-000000000003", "label": "About", "type": "page", "target": "40000000-0000-4000-8000-000000000001", "visible": true },
+    { "id": "30000000-0000-4000-8000-000000000004", "label": "CV", "type": "cv", "target": "", "visible": true }
+  ]
+}

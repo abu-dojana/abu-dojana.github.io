@@ -1,0 +1,42 @@
+---
+import type { Entry, Category } from '../lib/types';
+import { formatDate } from '../lib/content';
+interface Props { entry: Entry; categories: Category[]; searchable?: boolean }
+const { entry, categories, searchable = false } = Astro.props;
+const topics = categories.filter((category) => entry.categories.includes(category.id));
+const searchText = [entry.title, entry.summary, entry.body, ...entry.tags, ...topics.map((topic) => topic.title), ...entry.details.map((detail) => detail.value)].join(' ');
+---
+<article class="entry-card" data-entry-card={searchable ? '' : undefined} data-search={searchable ? searchText : undefined} data-categories={searchable ? JSON.stringify(entry.categories) : undefined} data-tags={searchable ? JSON.stringify(entry.tags) : undefined}>
+  {entry.cover && <a class="entry-card__image" href={`/entries/${entry.slug}/`} tabindex="-1" aria-hidden="true"><img src={entry.cover} alt={entry.coverAlt || ''} loading="lazy" width="1200" height="800" /></a>}
+  <div class="entry-card__body">
+    <div class="entry-card__meta">
+      {topics.slice(0, 2).map((topic) => <a href={`/categories/${topic.slug}/`}>{topic.title}</a>)}
+      {entry.example && <span class="example-label">Example</span>}
+    </div>
+    <h3><a href={`/entries/${entry.slug}/`}>{entry.title}<span class="entry-card__arrow" aria-hidden="true">↗</span></a></h3>
+    <p>{entry.summary}</p>
+    <div class="entry-card__footer">
+      {entry.date ? <span>{formatDate(entry.date)}</span> : <span>A page from the notebook</span>}
+      <span>{entry.readingMinutes} min read</span>
+    </div>
+  </div>
+</article>
+<style>
+  .entry-card { min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; transition: border-color .2s, transform .2s; }
+  .entry-card[hidden] { display: none; }
+  .entry-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .entry-card__image { display: block; overflow: hidden; aspect-ratio: 16 / 9; background: var(--surface-alt); }
+  .entry-card__image img { display: block; height: 100%; width: 100%; object-fit: cover; transition: transform .5s; }
+  .entry-card:hover .entry-card__image img { transform: scale(1.025); }
+  .entry-card__body { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
+  .entry-card__meta { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 650; }
+  .entry-card__meta a { color: var(--accent); text-decoration: none; }
+  .example-label { color: var(--muted); border: 1px dashed var(--line); border-radius: 3px; padding: .12rem .35rem; font-size: .62rem; }
+  h3 { font-family: var(--serif); font-size: 1.55rem; font-weight: 500; line-height: 1.2; margin: 1rem 0 .75rem; letter-spacing: -.03em; }
+  h3 a { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; color: var(--ink); text-decoration: none; }
+  h3 a:hover { color: var(--accent); }
+  .entry-card__arrow { font-family: system-ui, sans-serif; font-size: 1.05rem; padding-top: .2rem; color: var(--accent); }
+  p { color: var(--muted); line-height: 1.65; margin: 0 0 1.5rem; font-size: .91rem; }
+  .entry-card__footer { display: flex; justify-content: space-between; gap: .5rem; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .7rem; }
+  @media (prefers-reduced-motion: reduce) { .entry-card, .entry-card__image img { transition: none; } .entry-card:hover, .entry-card:hover .entry-card__image img { transform: none; } }
+</style>

@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EntryCard from '../components/EntryCard.astro';
+import { getSite, formatDate } from '../lib/content';
+const site = getSite();
+const { settings, categories } = site;
+const entries = site.entries.filter((entry) => entry.published).sort((a, b) => b.date.localeCompare(a.date));
+const featured = entries.filter((entry) => entry.featured).slice(0, 2);
+const selected = featured.length ? featured : entries.slice(0, 2);
+const recent = entries.slice(0, 5);
+const aboutPage = site.pages.find((page) => page.published && page.slug === 'about');
+---
+<BaseLayout description={settings.homeDescription} active="home">
+  <section class="home-hero container">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="tiny-dot" aria-hidden="true"></span>{settings.homeEyebrow || 'A personal notebook'}</p>
+      <h1>{settings.homeTitle || 'An open notebook for a curious life.'}</h1>
+      <p class="hero-description">{settings.homeDescription || 'A home for things I make, questions I follow, and places I go. There’s room for all of it.'}</p>
+      <div class="hero-actions"><a class="button" href="/explore/">Explore the notebook <span aria-hidden="true">↗</span></a>{aboutPage && <a class="quiet-link" href={`/pages/${aboutPage.slug}/`}>A little about me <span aria-hidden="true">→</span></a>}</div>
+    </div>
+    <aside class="hero-index" aria-label="Browse topics">
+      <div class="index-heading"><span>On these pages</span><span aria-hidden="true">✳</span></div>
+      <div class="index-topics">
+        {categories.slice(0, 6).map((category, index) => <a href={`/categories/${category.slug}/`}><span class="index-number">{String(index + 1).padStart(2, '0')}</span><span>{category.title}</span><span aria-hidden="true">↗</span></a>)}
+        {!categories.length && <p class="muted">A new notebook, ready to grow.</p>}
+      </div>
+      <p class="index-footnote">Work, ideas, and the occasional detour.<br />Filed here as life unfolds.</p>
+    </aside>
+  </section>
+
+  <section class="container home-section" aria-labelledby="selected-heading">
+    <div class="section-heading"><div><p class="eyebrow">A few pages worth opening</p><h2 id="selected-heading">Selected entries<span class="accent-period">.</span></h2></div><a class="quiet-link" href="/explore/">View everything <span aria-hidden="true">↗</span></a></div>
+    {selected.length ? <div class="featured-grid">{selected.map((entry) => <EntryCard entry={entry} categories={categories} />)}</div> : <div class="empty-state"><h3>The notebook is just beginning.</h3><p>New entries will appear here as they are published.</p></div>}
+  </section>
+
+  <section class="container home-section recent-section" aria-labelledby="recent-heading">
+    <div class="recent-intro"><p class="eyebrow">The latest additions</p><h2 id="recent-heading">Recently<br />in the notebook<span class="accent-period">.</span></h2><p>Things made, lessons learned, and moments worth keeping.</p><a class="quiet-link" href="/explore/">Browse all entries <span aria-hidden="true">→</span></a></div>
+    <div class="recent-list">
+      {recent.map((entry) => <article class="recent-entry"><div class="recent-entry__meta">{entry.date && <span>{formatDate(entry.date)}</span>}{entry.example && <span class="small-example">Example</span>}</div><h3><a href={`/entries/${entry.slug}/`}>{entry.title}<span aria-hidden="true">↗</span></a></h3><p>{entry.summary}</p></article>)}
+      {!recent.length && <p class="muted">Nothing published yet. Come back soon.</p>}
+    </div>
+  </section>
+
+  <section class="container closing-note"><span class="closing-symbol" aria-hidden="true">✳</span><div><p class="eyebrow">Always a work in progress</p><h2>More than one kind of story.</h2><p>This space has room to change, just like the person behind it.</p></div><a class="button secondary" href="/cv/">View the CV <span aria-hidden="true">↗</span></a></section>
+</BaseLayout>
+<style>
+  .home-hero { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(3rem, 7vw, 7rem); align-items: center; padding-top: 6rem; padding-bottom: 6rem; }
+  .tiny-dot { width: .45rem; height: .45rem; background: var(--accent); display: inline-block; border-radius: 50%; margin-right: .65rem; vertical-align: middle; }
+  h1 { font-family: var(--serif); font-size: clamp(3.3rem, 6.4vw, 5.8rem); line-height: 1.01; letter-spacing: -.055em; font-weight: 450; margin: 1.5rem 0 1.75rem; max-width: 13ch; text-wrap: balance; white-space: pre-line; }
+  .hero-description { max-width: 44ch; color: var(--muted); font-size: 1.03rem; line-height: 1.8; }
+  .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.7rem; margin-top: 2rem; }
+  .quiet-link { display: inline-flex; align-items: center; gap: .7rem; text-decoration: none; font-size: .8rem; font-weight: 550; color: var(--ink); }
+  .quiet-link:hover { color: var(--accent); }
+  .hero-index { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.6rem 1.9rem; background: var(--surface); position: relative; }
+  .hero-index::before { position: absolute; content: ''; height: 6px; left: 1.5rem; right: 1.5rem; top: -7px; border: 1px solid var(--line); border-bottom: none; border-radius: 4px 4px 0 0; }
+  .index-heading { display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; font-size: .67rem; letter-spacing: .12em; font-weight: 600; padding-bottom: 1.3rem; }
+  .index-heading > :last-child { color: var(--accent); font-size: 1.6rem; line-height: 1; }
+  .index-topics a { display: grid; grid-template-columns: 1.8rem 1fr auto; gap: .65rem; align-items: center; border-top: 1px solid var(--line); padding: 1rem 0; text-decoration: none; color: var(--ink); font-family: var(--serif); font-size: 1.12rem; }
+  .index-topics a:hover { color: var(--accent); }
+  .index-number { color: var(--muted); font-family: ui-monospace, monospace; font-size: .65rem; }
+  .index-topics a > :last-child { font-family: system-ui, sans-serif; font-size: .9rem; color: var(--accent); }
+  .index-footnote { border-top: 1px solid var(--line); padding-top: 1rem; margin-bottom: 0; color: var(--muted); font-size: .73rem; line-height: 1.7; }
+  .home-section { border-top: 1px solid var(--line); padding-top: 2.5rem; padding-bottom: 4rem; }
+  .section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; margin-bottom: 2rem; }
+  h2 { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 450; letter-spacing: -.04em; line-height: 1.1; margin: .65rem 0 0; }
+  .accent-period { color: var(--accent); }
+  .featured-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .recent-section { display: grid; grid-template-columns: 1fr 1.8fr; gap: 4rem; padding-top: 3rem; }
+  .recent-intro > p:not(.eyebrow) { max-width: 25ch; margin: 1.4rem 0; color: var(--muted); font-size: .9rem; line-height: 1.8; }
+  .recent-entry { border-bottom: 1px solid var(--line); padding: 0 0 1.3rem; margin-bottom: 1.5rem; }
+  .recent-entry:last-child { margin-bottom: 0; }
+  .recent-entry__meta { color: var(--muted); font-size: .66rem; display: flex; align-items: center; gap: .65rem; letter-spacing: .04em; }
+  .small-example { border: 1px dashed var(--line); padding: .1rem .3rem; border-radius: 2px; font-size: .6rem; text-transform: uppercase; }
+  .recent-entry h3 { font-family: var(--serif); font-size: 1.35rem; font-weight: 450; margin: .6rem 0; letter-spacing: -.02em; }
+  .recent-entry h3 a { display: flex; justify-content: space-between; gap: 1rem; color: var(--ink); text-decoration: none; }
+  .recent-entry h3 a:hover { color: var(--accent); }
+  .recent-entry h3 span { font-family: system-ui, sans-serif; color: var(--accent); font-size: .9rem; }
+  .recent-entry p { color: var(--muted); font-size: .83rem; line-height: 1.65; margin: 0; max-width: 62ch; }
+  .closing-note { border-top: 1px solid var(--line); padding-block: 3rem 4rem; display: flex; align-items: center; gap: 1.6rem; }
+  .closing-symbol { font-size: 3.8rem; font-family: var(--serif); color: var(--accent); }
+  .closing-note h2 { font-size: 1.9rem; }
+  .closing-note p:not(.eyebrow) { margin: .65rem 0 0; color: var(--muted); font-size: .87rem; }
+  .closing-note .button { margin-left: auto; flex-shrink: 0; }
+  @media (max-width: 760px) { .home-hero { grid-template-columns: 1fr; padding-block: 3rem; gap: 3rem; } h1 { max-width: 15ch; } .hero-index { max-width: none; } .featured-grid { grid-template-columns: 1fr; } .recent-section { grid-template-columns: 1fr; gap: 2rem; } .recent-intro h2 br { display: none; } .section-heading { align-items: flex-start; } .section-heading > .quiet-link { margin-top: .3rem; white-space: nowrap; } .closing-note { flex-wrap: wrap; } .closing-note .button { margin-left: 0; } .closing-symbol { font-size: 2.7rem; } }
+  @media (max-width: 420px) { .section-heading { flex-direction: column; gap: 1rem; } .hero-actions { gap: 1.2rem; } }
+</style>

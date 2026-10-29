@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CvDocument from '../../components/CvDocument.astro';
+import { getSite } from '../../lib/content';
+import { createCvModel } from '../../lib/cv';
+import '../../styles/cv.css';
+
+const site = getSite();
+const realModel = createCvModel(site);
+const demoModel = createCvModel(site, true);
+const serializedModels = JSON.stringify({ real: realModel, demo: demoModel }).replace(/</g, '\\u003c');
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+
+<BaseLayout title="CV builder" description="Select, arrange, and print a CV using the content on this website." active="cv" wide>
+  <section class="cv-builder-page" data-cv-builder>
+    <div class="cv-page-intro cv-app-only">
+      <p class="cv-eyebrow">Made for the next step</p>
+      <h1>Make the introduction yours.</h1>
+      <p>Choose what belongs, arrange the details, and save a clean PDF.</p>
+    </div>
+
+    <noscript>
+      <div class="cv-setup cv-app-only">
+        <h2>The interactive builder needs JavaScript.</h2>
+        <p>Your default CV remains available without it. Open the CV and use your browser’s Print command to save a PDF.</p>
+        <a class="cv-button" href={`${base}cv/`}>Open the default CV</a>
+      </div>
+    </noscript>
+
+    <div class="cv-setup cv-app-only" data-cv-builder-setup hidden>
+      <h2>Your CV is still taking shape.</h2>
+      <p>Add your name and at least one real entry marked for CV inclusion in the editor. Until then, explore the layout with labelled examples.</p>
+      <a class="cv-button cv-button-primary" href={`${base}cv/build/?demo=1`}>Try the example builder <span aria-hidden="true">→</span></a>
+    </div>
+
+    <div class="cv-builder" data-cv-builder-workspace hidden>
+      <aside class="cv-editor cv-app-only" aria-label="CV options">
+        <div class="cv-editor-heading">
+          <div><p class="cv-eyebrow">Your selection</p><h2>Keep what matters.</h2></div>
+          <button type="button" class="cv-text-button" data-cv-reset>Reset</button>
+        </div>
+        <p class="cv-editor-note" data-cv-mode-note></p>
+        <p class="cv-editor-note">Selections and order stay on this browser. Text edits stay only in this open page.</p>
+        <div class="cv-storage-note" data-cv-storage-note role="status" hidden></div>
+
+        <fieldset class="cv-profile-options">
+          <legend>For this version</legend>
+          <label class="cv-field">Headline
+            <input type="text" maxlength="180" autocomplete="off" data-cv-headline-input />
+          </label>
+          <label class="cv-field">Summary
+            <textarea rows="4" maxlength="1800" autocomplete="off" data-cv-summary-input></textarea>
+          </label>
+          <label class="cv-field">Private contact line <span class="cv-optional">optional</span>
+            <input type="text" maxlength="320" autocomplete="off" placeholder="Email · Phone · City" data-cv-contact-input aria-describedby="cv-contact-help" />
+          </label>
+          <p class="cv-help" id="cv-contact-help">Appears only in this preview and your printout. It is never saved by this builder.</p>
+        </fieldset>
+
+        <div class="cv-selection-heading"><h3>Sections & entries</h3><p>Use the arrows to change their order.</p></div>
+        <div data-cv-controls></div>
+        <div class="cv-editor-actions">
+          <button type="button" class="cv-button cv-button-primary" data-cv-print>Print / Save as PDF <span aria-hidden="true">↗</span></button>
+          <p class="cv-help">Select “Save as PDF.” A4, 100% scale, and browser headers/footers off give a clean starting point.</p>
+          <p class="cv-help" data-cv-save-status role="status" aria-live="polite"></p>
+        </div>
+      </aside>
+
+      <div class="cv-preview-pane">
+        <div class="cv-preview-caption cv-app-only"><span>Live preview</span><span>A4 · a simple, readable layout</span></div>
+        <div data-cv-version="real" hidden><CvDocument model={realModel} documentId="cv-real-document" /></div>
+        <div data-cv-version="demo" hidden><CvDocument model={demoModel} documentId="cv-example-document" /></div>
+      </div>
+    </div>
+    <script type="application/json" id="cv-models" set:html={serializedModels}></script>
+  </section>
+</BaseLayout>
+
+<script>
+  import '../../scripts/cv-builder';
+</script>

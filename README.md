@@ -1,33 +1,49 @@
-A Github Pages template for academic websites. This was forked (then detached) by [Stuart Geiger](https://github.com/staeiou) from the [Minimal Mistakes Jekyll Theme](https://mmistakes.github.io/minimal-mistakes/), which is © 2016 Michael Rose and released under the MIT License. See LICENSE.md.
+# Abu Dojana · A personal notebook
 
-I think I've got things running smoothly and fixed some major bugs, but feel free to file issues or make pull requests if you want to improve the generic template / theme.
+A flexible personal website with a hosted Pages CMS editor, light/dark themes, and a browser-based CV builder. Subjects and navigation are content: adding an adventure, job experience, article, or a new interest does not require new code.
 
-### Note: if you are using this repo and now get a notification about a security vulnerability, delete the Gemfile.lock file. 
+## Run locally
 
-# Instructions
+Use Node.js 24 or newer and npm.
 
-1. Register a GitHub account if you don't have one and confirm your e-mail (required!)
-1. Fork [this repository](https://github.com/academicpages/academicpages.github.io) by clicking the "fork" button in the top right. 
-1. Go to the repository's settings (rightmost item in the tabs that start with "Code", should be below "Unwatch"). Rename the repository "[your GitHub username].github.io", which will also be your website's URL.
-1. Set site-wide configuration and create content & metadata (see below -- also see [this set of diffs](http://archive.is/3TPas) showing what files were changed to set up [an example site](https://getorg-testacct.github.io) for a user with the username "getorg-testacct")
-1. Upload any files (like PDFs, .zip files, etc.) to the files/ directory. They will appear at https://[your GitHub username].github.io/files/example.pdf.  
-1. Check status by going to the repository settings, in the "GitHub pages" section
-1. (Optional) Use the Jupyter notebooks or python scripts in the `markdown_generator` folder to generate markdown files for publications and talks from a TSV file.
+```sh
+npm ci
+npm run dev
+```
 
-See more info at https://academicpages.github.io/
+Open the Local address printed by Astro. Before publishing:
 
-## To run locally (not on GitHub Pages, to serve on your own computer)
+```sh
+npm run check
+npm test
+npm run build
+```
 
-1. Clone the repository and made updates as detailed above
-1. Make sure you have ruby-dev, bundler, and nodejs installed: `sudo apt install ruby-dev ruby-bundler nodejs`
-1. Run `bundle clean` to clean up the directory (no need to run `--force`)
-1. Run `bundle install` to install ruby dependencies. If you get errors, delete Gemfile.lock and try again.
-1. Run `bundle exec jekyll liveserve` to generate the HTML and serve it from `localhost:4000` the local server will automatically rebuild and refresh the pages on change.
+## Editing
 
-# Changelog -- bugfixes and enhancements
+See [EDITING.md](EDITING.md) for the full browser workflow, setup, privacy details, troubleshooting, and custom-domain connection.
 
-There is one logistical issue with a ready-to-fork template theme like academic pages that makes it a little tricky to get bug fixes and updates to the core theme. If you fork this repository, customize it, then pull again, you'll probably get merge conflicts. If you want to save your various .yml configuration files and markdown files, you can delete the repository and fork it again. Or you can manually patch. 
+- Dashboard: https://app.pagescms.org/
+- Repository: https://github.com/abu-dojana/abu-dojana.github.io
+- Live website: https://abu-dojana.github.io/
+- CV demo: https://abu-dojana.github.io/cv/build/?demo=1
 
-To support this, all changes to the underlying code appear as a closed issue with the tag 'code change' -- get the list [here](https://github.com/academicpages/academicpages.github.io/issues?q=is%3Aclosed%20is%3Aissue%20label%3A%22code%20change%22%20). Each issue thread includes a comment linking to the single commit or a diff across multiple commits, so those with forked repositories can easily identify what they need to patch.
+The initial profile fields are intentionally blank. Example entries are visibly marked, and the default CV does not treat them as your experience. Preview mode keeps the starter out of search engines. Fill in your real public profile, replace examples, and turn preview mode off when ready.
 
-#Github Pages template for academic personal websites, forked from mmistakes/minimal-mistakes
+## Structure
+
+- `content/site.json`: profile, homepage copy, navigation, and settings.
+- `content/entries/`: Markdown entries with common metadata and optional CV presentation.
+- `content/categories/`, `content/pages/`, `content/cv-sections/`: editable subjects, standalone pages, and CV headings.
+- `.pages.yml`: forms for the hosted editor.
+- `src/lib/content.ts`: validated loading, stable references, and sanitized Markdown.
+- `src/lib/cv.ts`: selection, ordering, honest demo handling, and local storage whitelist.
+- `.github/workflows/deploy.yml`: checks and publishes successful `master` builds to GitHub Pages.
+
+Private text entered in the CV builder stays in memory. Only CV selections/order and theme preferences are stored on the current browser. This site has no analytics, backend account database, or private cloud CV storage. All repository files and history—including drafts—are public.
+
+## Publishing and recovery
+
+GitHub Pages uses GitHub Actions, with `master` as the publishing branch. A CMS save creates a commit, then checks/tests/build run before deployment. A failed build does not replace the last successful deployment. Set the GitHub repository variable `SITE_URL` when switching to a custom domain.
+
+The previous AcademicPages starter is preserved in the Git tag `legacy-academicpages-2026-10-29`. Do not delete that recovery point. The new site is an Astro build, so restoration also requires restoring the old branch-based Jekyll publishing setting; see the editing guide.

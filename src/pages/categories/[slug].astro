@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EntryCard from '../../components/EntryCard.astro';
+import { getSite } from '../../lib/content';
+import type { Category, SiteContent } from '../../lib/types';
+export function getStaticPaths() {
+  const site = getSite();
+  return site.categories.map((category) => ({ params: { slug: category.slug }, props: { category, site } }));
+}
+const { category, site } = Astro.props as { category: Category; site: SiteContent };
+const entries = site.entries.filter((entry) => entry.published && entry.categories.includes(category.id)).sort((a, b) => b.date.localeCompare(a.date));
+---
+<BaseLayout title={category.title} description={category.description} active="explore">
+  <section class="container category-page">
+    <a class="breadcrumb" href="/explore/">← All entries</a>
+    <header><p class="eyebrow">A thread in the notebook</p><h1 class="page-heading">{category.title}<span>.</span></h1>{category.description && <p class="category-description muted">{category.description}</p>}<p class="category-count">{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</p></header>
+    {entries.length ? <><h2 class="sr-only">Entries in {category.title}</h2><div class="category-grid">{entries.map((entry) => <EntryCard entry={entry} categories={site.categories} />)}</div></> : <div class="empty-state"><h2>A new thread, waiting to unfold.</h2><p>Published entries in this category will appear here.</p><a class="button secondary" href="/explore/">Explore everything</a></div>}
+  </section>
+</BaseLayout>
+<style>
+  .category-page { padding-block: 2.5rem 5rem; }
+  header { padding-block: 2rem; }
+  header h1 { margin-block: 1rem; padding: 0; max-width: none; }
+  header h1 span { color: var(--accent); }
+  .category-description { max-width: 58ch; font-size: 1rem; line-height: 1.8; }
+  .category-count { font-size: .72rem; color: var(--muted); margin-top: 1.5rem; }
+  .category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.4rem; }
+  @media (max-width: 950px) { .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .category-grid { grid-template-columns: 1fr; } }
+</style>
