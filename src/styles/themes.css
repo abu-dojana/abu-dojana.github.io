@@ -1,0 +1,41 @@
+.theme-menu{position:relative;flex:none;min-width:0;color:var(--ink)}
+.theme-toggle{display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface);list-style:none;cursor:pointer;font-size:11px;line-height:1.4;white-space:nowrap}
+.theme-toggle::-webkit-details-marker{display:none}
+.theme-toggle:hover,.theme-menu[open]>.theme-toggle{border-color:var(--accent);color:var(--accent)}
+.theme-toggle-name{display:block;max-width:76px;overflow:hidden;text-overflow:ellipsis}
+.theme-toggle-icon{display:block;width:15px;height:15px;flex:none;color:var(--muted)}
+.theme-toggle-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle-icon [data-theme-icon]{display:none}
+.theme-menu[data-theme-mode=system] [data-theme-icon=system],.theme-menu[data-theme-mode=light] [data-theme-icon=light],.theme-menu[data-theme-mode=dark] [data-theme-icon=dark]{display:block}
+.theme-toggle-chevron{width:10px;height:10px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.theme-menu[open] .theme-toggle-chevron{transform:rotate(180deg)}
+.theme-panel{position:absolute;inset-inline-end:0;top:calc(100% + 10px);z-index:70;width:352px;max-width:calc(100vw - 36px);max-height:min(75svh,660px);overflow-y:auto;overscroll-behavior:contain;padding:19px;background:var(--surface);border:1px solid var(--line);border-radius:9px;box-shadow:0 16px 48px #0003}
+.theme-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.theme-panel-heading h2{font:600 15px var(--sans);letter-spacing:-.02em;line-height:1.4;margin:0}
+.theme-close{display:grid;place-items:center;width:28px;height:28px;flex:none;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--muted);font:22px/1 var(--sans);padding:0;cursor:pointer}
+.theme-close:hover{background:var(--surface-alt);color:var(--ink);border-color:var(--line)}
+.theme-panel-note{font-size:11px;line-height:1.6;color:var(--muted);margin:5px 0 16px}
+.theme-system-options,.theme-group{padding:0;border:0;margin:0;min-width:0}
+.theme-group{margin-top:19px}
+.theme-group legend{padding:0;font-size:10px;font-weight:600;line-height:1.5;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.theme-choice{display:flex;align-items:center;gap:7px;min-width:0;min-height:43px;padding:9px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-size:11px;line-height:1.35;cursor:pointer}
+.theme-choice:hover{border-color:var(--accent)}
+.theme-choice:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.theme-choice:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.theme-choice input{width:13px;height:13px;flex:none;margin:0;accent-color:var(--accent);cursor:pointer}
+.theme-choice input:focus-visible{outline:none}
+.theme-choice-name{min-width:0;overflow-wrap:anywhere}
+.theme-swatches{display:flex;align-items:center;flex:none;padding-inline:1px}
+.theme-swatches i{display:block;width:11px;height:17px;border:1px solid #80808055}
+.theme-swatches i:first-child{background:var(--swatch-bg);border-radius:3px 0 0 3px}
+.theme-swatches i:nth-child(2){background:var(--swatch-surface);border-inline:0}
+.theme-swatches i:last-child{background:var(--swatch-accent);border-radius:0 3px 3px 0}
+.theme-system-choice{gap:10px;min-height:52px;padding:10px 12px}
+.theme-system-copy{display:flex;flex-direction:column;gap:3px}
+.theme-system-copy strong{font-size:12px;font-weight:600}
+.theme-system-copy small{font-size:10px;font-weight:400;line-height:1.5;color:var(--muted)}
+.theme-noscript{margin:16px 0 0}
+@media(max-width:700px){.chrome-topbar:has(.theme-menu){position:relative}.theme-menu{position:static}.theme-toggle{min-height:34px;padding:7px;gap:5px;font-size:10px}.theme-toggle-name{max-width:61px}.theme-toggle-icon,.theme-toggle-icon svg{width:13px;height:13px}.theme-panel{top:calc(100% + 3px)}}
+@media(max-width:390px){.theme-panel{width:320px;padding:15px}.theme-choice{gap:6px;padding-inline:7px;font-size:10px}.theme-swatches i{width:9px}.theme-toggle-icon{display:none}.theme-toggle-name{max-width:60px}}
+@media print{.theme-menu{display:none!important}}

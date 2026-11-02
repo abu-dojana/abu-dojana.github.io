@@ -1,4 +1,5 @@
 import { fitNavigationItems } from '../lib/navigation';
+import { initializeThemePicker } from './theme-picker';
 
 function initializeNavigation() {
   const target = document.querySelector<HTMLElement>('[data-responsive-navigation]');
@@ -64,31 +65,6 @@ function initializeNavigation() {
   void document.fonts?.ready.then(queueMeasurement);
 }
 
-function initializeTheme() {
-  const picker = document.querySelector<HTMLSelectElement>('#theme-select');
-  if (!picker || picker.dataset.initialized) return;
-  picker.dataset.initialized = 'true';
-  const wrapper = picker.closest<HTMLElement>('[data-theme-choice]');
-  let theme = 'system';
-  try {
-    const stored = localStorage.getItem('notebook-theme');
-    if (stored === 'light' || stored === 'dark') theme = stored;
-  } catch {}
-  picker.value = theme;
-  if (wrapper) wrapper.dataset.themeChoice = theme;
-  picker.disabled = false;
-  picker.addEventListener('change', () => {
-    const next = picker.value;
-    if (next === 'system') delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = next;
-    if (wrapper) wrapper.dataset.themeChoice = next;
-    try {
-      if (next === 'system') localStorage.removeItem('notebook-theme');
-      else localStorage.setItem('notebook-theme', next);
-    } catch {}
-  });
-}
-
 initializeNavigation();
-initializeTheme();
-document.addEventListener('astro:page-load', () => { initializeNavigation(); initializeTheme(); });
+initializeThemePicker();
+document.addEventListener('astro:page-load', () => { initializeNavigation(); initializeThemePicker(); });

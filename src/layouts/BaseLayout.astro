@@ -1,6 +1,9 @@
 ---
 import { getSite, getNavigation, navHref } from '../lib/content';
 import { isCurrentNavigationItem } from '../lib/navigation';
+import { themes, defaultLightTheme, defaultDarkTheme, themeStorageKey } from '../lib/themes';
+import { themeStyles } from '../lib/theme-styles';
+import ThemePicker from '../components/ThemePicker.astro';
 import '../styles/global.css';
 import '../styles/chrome.css';
 interface Props { title?: string; description?: string; active?: string; wide?: boolean }
@@ -30,8 +33,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={pageDescription} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
-    <script is:inline>
-      try { const t = localStorage.getItem('notebook-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+    <style is:inline set:html={themeStyles} />
+    <script is:inline define:vars={{ themeIds: themes.map(theme => theme.id), themeStorageKey, defaultLightTheme, defaultDarkTheme }}>
+      try {
+        let saved = localStorage.getItem(themeStorageKey);
+        if (saved === 'light') saved = defaultLightTheme;
+        if (saved === 'dark') saved = defaultDarkTheme;
+        if (themeIds.includes(saved)) document.documentElement.dataset.theme = saved;
+      } catch {}
     </script>
   </head>
   <body>
@@ -44,15 +53,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
           <span class="chrome-brand-name">{settings.siteTitle}</span>
         </a>
         <div class="chrome-actions">
-          <div class="chrome-theme" data-theme-choice="system">
-            <span class="chrome-theme-icon" aria-hidden="true">
-              <svg data-theme-icon="system" viewBox="0 0 20 20"><rect x="2" y="3" width="16" height="11" rx="1.5"/><path d="M7 17h6M10 14v3"/></svg>
-              <svg data-theme-icon="light" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.4 1.4M14.6 14.6 16 16M4 16l1.4-1.4M14.6 5.4 16 4"/></svg>
-              <svg data-theme-icon="dark" viewBox="0 0 20 20"><path d="M16.9 12.8A7.5 7.5 0 0 1 7.2 3.1a7.5 7.5 0 1 0 9.7 9.7Z"/></svg>
-            </span>
-            <label for="theme-select" class="sr-only">Color theme</label>
-            <select id="theme-select" class="chrome-theme-select" aria-label="Color theme" disabled><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
-          </div>
+          <ThemePicker />
           <a href="https://app.pagescms.org/" class="chrome-login" title="Owner editor access" aria-label="Log in to the website editor">
             <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="6.2" r="3"/><path d="M3.5 17v-1.3a6.5 6.5 0 0 1 13 0V17"/></svg>
             Log in

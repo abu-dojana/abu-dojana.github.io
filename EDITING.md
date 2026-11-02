@@ -119,7 +119,11 @@ The real default CV needs a name and at least one real eligible item. Until then
 
 ## Light and dark mode
 
-Use **System / Light / Dark** on the website. System follows the device preference. An explicit choice is remembered on that browser and changes only that visitor's view. Printing uses a white background and dark text.
+Open the theme control beside **Log in** to choose from eight light themes and eight dark themes. Each option shows a color preview. The selection updates the whole website immediately and is remembered in the current browser.
+
+Light themes: **Paper, Sand, Rose, Sky, Sage, Lavender, Peach, Slate**. Dark themes: **Forest, Midnight, Charcoal, Plum, Navy, Ember, Espresso, Ocean**.
+
+**System** follows the device preference, using Paper in light mode and Forest in dark mode. Existing Light/Dark choices carry over to those defaults. Theme choices change only that visitor's view; Pages CMS content is shared independently. Printing the CV always uses a white background and dark text.
 
 ## Check whether an edit published
 
