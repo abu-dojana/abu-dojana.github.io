@@ -1,0 +1,73 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { entryUrl, formatDate } from '../lib/content';
+import type { Entry, Page, SiteContent } from '../lib/types';
+import '../styles/reader.css';
+
+interface Props { page: Page; site: SiteContent; entry?: Entry }
+const { page, entry } = Astro.props;
+const items = page.items.filter(item => item.published);
+const pageLabel = page.navigationLabel || page.title;
+const overviewUrl = `/pages/${page.slug}/`;
+const title = entry?.title || page.title;
+const summary = entry ? entry.summary : page.summary;
+const bodyHtml = entry ? entry.html : page.html;
+const hasBody = Boolean((entry ? entry.body : page.body).trim());
+const isExample = entry ? entry.example || page.example : page.example;
+const progressLabels = { planned: 'Planned', 'in-progress': 'In progress', completed: 'Completed', '': '' };
+const dateLabel = (item: Entry) => item.date ? `${formatDate(item.date)}${item.endDate ? ` — ${formatDate(item.endDate)}` : ''}` : item.endDate ? `Until ${formatDate(item.endDate)}` : '';
+const date = entry ? dateLabel(entry) : '';
+const detailLinks = entry?.links.filter(link => link.url.trim()) || [];
+const hasStaticRail = !entry || Boolean(entry.details.length || detailLinks.length);
+const hasHeadings = /<h[2-4](?:\s|>)/i.test(bodyHtml);
+const showRail = hasStaticRail || hasHeadings;
+const selectedIndex = entry ? items.findIndex(item => item.id === entry.id) : -1;
+const previous = selectedIndex > 0 ? items[selectedIndex - 1] : undefined;
+const next = selectedIndex >= 0 ? items[selectedIndex + 1] : undefined;
+---
+<BaseLayout title={title} description={summary} active={page.id} wide>
+  <div class:list={['reader-layout', { 'reader-layout--without-rail': !showRail }]} data-reader>
+    <a class="reader-skip" href="#reader-content">Skip item navigation</a>
+    <aside class="reader-sidebar" aria-label={`${pageLabel} navigation`}>
+      <details class="reader-tree" data-reader-sidebar open>
+        <summary><span>In this page</span><span class="reader-disclosure-icon" aria-hidden="true">⌄</span></summary>
+        <div class="reader-tree-body">
+          <p class="reader-sidebar-title">{pageLabel}</p>
+          <nav aria-label={`Items in ${pageLabel}`}>
+            <a class="reader-overview-link" href={overviewUrl} aria-current={!entry ? 'page' : undefined}><span aria-hidden="true">⌂</span><span>Overview</span></a>
+            {items.length > 0 && <ol class="reader-item-nav" role="list">{items.map(item => <li><a href={entryUrl(item)} aria-current={entry?.id === item.id ? 'page' : undefined}><span class="reader-item-title">{item.title}</span>{item.example && <span class="reader-item-example">Example</span>}</a></li>)}</ol>}
+          </nav>
+          <a class="reader-all-pages" href="/pages/">All pages <span aria-hidden="true">↗</span></a>
+        </div>
+      </details>
+    </aside>
+
+    <article class="reader-main" id="reader-content" tabindex="-1">
+      <nav class="reader-breadcrumb" aria-label="Breadcrumb"><ol role="list"><li><a href="/pages/">Pages</a></li>{entry ? <><li><a href={overviewUrl}>{pageLabel}</a></li><li><span aria-current="page">{entry.title}</span></li></> : <li><span aria-current="page">{pageLabel}</span></li>}</ol></nav>
+      <header class="reader-heading">
+        <p class="reader-eyebrow">{entry ? pageLabel : 'Overview'}</p>
+        <h1 id="reader-title">{title}</h1>
+        {summary && <p class="reader-summary">{summary}</p>}
+        {entry && (date || hasBody || entry.progress) && <div class="reader-byline">{date && <span>{date}</span>}{entry.progress && <span>{progressLabels[entry.progress]}</span>}{hasBody && <span>{entry.readingMinutes} min read</span>}</div>}
+        {isExample && <p class="reader-example"><strong>Example content</strong><span>Illustrative material, ready to make your own.</span></p>}
+      </header>
+
+      {entry?.cover && <figure class="reader-cover"><img src={entry.cover} alt={entry.coverAlt || ''} width="1200" height="800" /></figure>}
+      <div class="reader-body prose" data-reader-body set:html={bodyHtml}></div>
+
+      {!entry && items.length > 0 && <section class="reader-overview-items" id="reader-children" aria-labelledby="reader-items-heading"><div class="reader-items-heading"><h2 id="reader-items-heading">In this page</h2><span>{items.length} {items.length === 1 ? 'item' : 'items'}</span></div><ol role="list">{items.map(item => <li><a class="reader-child-link" href={entryUrl(item)}><span>{item.title}</span><span aria-hidden="true">→</span></a>{item.example && <span class="reader-list-example">Example</span>}{item.summary && <p>{item.summary}</p>}{dateLabel(item) && <span class="reader-child-date">{dateLabel(item)}</span>}</li>)}</ol></section>}
+      {!entry && !hasBody && !items.length && <p class="reader-empty">No items added yet.</p>}
+
+      {entry && entry.tags.length > 0 && <div class="reader-tags" aria-label="Tags">{entry.tags.map(tag => <span class="pill">#{tag}</span>)}</div>}
+      {entry && <nav class="reader-neighbours" aria-label="Adjacent items">{previous ? <a href={entryUrl(previous)}><small>Previous</small><span>← {previous.title}</span></a> : <a href={overviewUrl}><small>Back to</small><span>← {pageLabel}</span></a>}{next && <a class="reader-next" href={entryUrl(next)}><small>Next</small><span>{next.title} →</span></a>}</nav>}
+    </article>
+
+    {showRail && <aside class="reader-rail" aria-label="Contents and details" data-reader-rail data-reader-static={hasStaticRail ? 'true' : 'false'}>
+      <section class="reader-rail-section reader-contents" data-reader-toc hidden><h2>Contents</h2><nav aria-label="Article contents"><ol role="list" data-reader-toc-list></ol></nav></section>
+      {!entry && <section class="reader-rail-section"><h2>Page details</h2><dl class="reader-detail-list"><div><dt>Items</dt><dd>{items.length}</dd></div></dl><div class="reader-page-jumps"><a href="#reader-title">Overview</a>{items.length > 0 && <a href="#reader-children">Items in this page</a>}</div></section>}
+      {entry && entry.details.length > 0 && <section class="reader-rail-section"><h2>Details</h2><dl class="reader-detail-list">{entry.details.map(detail => <div><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl></section>}
+      {detailLinks.length > 0 && <section class="reader-rail-section"><h2>Links</h2><ul class="reader-supporting-links" role="list">{detailLinks.map(link => <li><a href={link.url} rel="noopener noreferrer">{link.label}<span aria-hidden="true">↗</span></a></li>)}</ul></section>}
+    </aside>}
+  </div>
+</BaseLayout>
+<script>import '../scripts/reader';</script>

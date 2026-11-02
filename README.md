@@ -1,8 +1,8 @@
-# Abu Dojana · A personal notebook
+# Abu Dojana · Personal website
 
 A flexible personal website with a hosted Pages CMS editor, light/dark themes, and a browser CV builder.
 
-The editor is **page-first**: open **Pages → Projects → Items → Add item**. Create any page—Experience, Skills, Hobbies, Adventures, Blog, or another subject—and manage its contents in that form. Normal pages need no separate category, entry, or menu setup.
+The editor is **page-first**: open **Pages → choose or create a page → Items → Add item**. Create any subject page and manage its contents in that form. There is no fixed subject list or page-count limit in the site, and normal pages need no separate category, entry, or menu setup.
 
 ## Edit in your browser
 
@@ -11,9 +11,9 @@ The editor is **page-first**: open **Pages → Projects → Items → Add item**
 - Website: <https://abu-dojana.github.io/>
 - Example CV builder: <https://abu-dojana.github.io/cv/build/?demo=1>
 
-Sign in with GitHub, authorize Pages CMS for this repository if needed, and select **main**. The sidebar exposes Pages, Profile & website settings, CV sections, and images. See [EDITING.md](EDITING.md) for the complete guide, authorization steps, publishing checks, and recovery.
+Use the website's **Log in** link to open the Pages CMS owner dashboard, sign in with the repository owner's existing GitHub account, and select **main**. The sidebar exposes Pages, Profile & website settings, CV sections, and images. Visitors do not need an account or signup. See [EDITING.md](EDITING.md) for the complete editing guide, publishing checks, and recovery.
 
-Pages offer **Cards**, **List**, **Timeline**, and **Article** layouts. Publishing, menu visibility, labels, and order are editable. Items live inside their parent page and can be as simple as a skill title or as detailed as a project write-up. Optional CV presentation is edited on that same item.
+Pages share a reader with a left-hand item list and a central detail area. The top navigation opens each page's overview; selecting a child item opens its details in that same reader. Additional top-level links appear under **More** when needed. Publishing, menu visibility, labels, and order are editable. Items live inside their parent page and can be as simple as a skill title or as detailed as a project write-up. Optional CV presentation is edited on that same item.
 
 The initial real profile is blank. Samples remain labeled and excluded from the real default CV. Preview mode asks search engines not to index the starter. Enter real public information, replace examples, and turn preview mode off when ready.
 
@@ -40,11 +40,11 @@ npm run build
 - `content/site.json`: public profile, homepage copy, preview mode, and optional extra navigation.
 - `content/cv-sections/`: editable CV headings and default ordering.
 - `.pages.yml`: hosted-editor forms, including collapsed item editors inside Pages.
-- `src/lib/content.ts`: validated loading, flattened published items, stable IDs, and sanitized Markdown.
+- `src/lib/content.ts`: validated loading, flattened page items, inherited publication/example flags, stable IDs, and sanitized Markdown.
 - `src/lib/cv.ts`: CV selection/order and the browser-storage whitelist.
 - `.github/workflows/deploy.yml`: checks and publishes successful `main` builds.
 
-Unpublished or removed pages take their items out of public listings and the CV builder. Items also have their own publishing switch. A page's title and layout do not determine its items' CV sections.
+Unpublished pages take their items out of public routes, navigation, and the CV builder. Deleting a whole page removes its children as well, without affecting other pages or requiring a settings/code cleanup; stale optional page-menu overrides are ignored. Empty pages and new subjects work without a schema change. Items also have their own publishing switch. A page's title does not determine its items' CV sections. Existing `/entries/<slug>/` links remain stable and open in the owning page's reader.
 
 Private CV text stays in memory. Only selection/order and theme preferences are stored in that browser. Repository files and history—including drafts—are public. There is no private cloud CV storage or automatic PDF-download service; export uses browser printing.
 

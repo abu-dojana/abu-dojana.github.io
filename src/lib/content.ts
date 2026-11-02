@@ -86,15 +86,15 @@ export function validateSite(site: SiteContent): SiteContent {
   unique(site.settings.navigation, 'navigation');
   const categories = new Set(site.categories.map(c => c.id));
   const sections = new Set(site.cvSections.map(s => s.id));
-  const pages = new Set(site.pages.map(p => p.id));
   for (const entry of site.entries) {
     for (const category of entry.categories) if (!categories.has(category)) throw new Error(`Entry "${entry.title}" refers to a missing category. Reassign it before deleting that category.`);
     if ((entry.cv.include || entry.cv.section) && !sections.has(entry.cv.section)) throw new Error(`Entry "${entry.title}" needs a valid CV section, or turn off CV inclusion and clear its section.`);
     if (entry.cover && !entry.coverAlt) throw new Error(`Add alternative text for the cover of "${entry.title}".`);
   }
+  // Missing page shortcuts are ignored by getNavigation, so deleting a page
+  // never requires a second edit in website settings.
   for (const item of site.settings.navigation.filter(n => n.visible)) {
     if (item.type === 'category' && !categories.has(item.target)) throw new Error(`Menu item "${item.label}" refers to a missing category.`);
-    if (item.type === 'page' && !pages.has(item.target)) throw new Error(`Menu item "${item.label}" refers to a missing page.`);
     if (item.type === 'external' && !/^https?:\/\//i.test(item.target)) throw new Error(`Menu item "${item.label}" needs an https:// URL.`);
   }
   return site;
@@ -147,7 +147,10 @@ export function navHref(item: NavItem, site: SiteContent): string {
   if (item.type === 'home') return '/';
   if (item.type === 'explore') return '/explore/';
   if (item.type === 'cv') return '/cv/';
-  if (item.type === 'page') return `/pages/${site.pages.find(p => p.id === item.target)?.slug}/`;
+  if (item.type === 'page') {
+    const page = site.pages.find(p => p.id === item.target && p.published);
+    return page ? `/pages/${page.slug}/` : '/pages/';
+  }
   if (item.type === 'category') return `/categories/${site.categories.find(c => c.id === item.target)?.slug}/`;
   return item.target;
 }

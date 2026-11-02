@@ -73,7 +73,7 @@ components:
       - name: visible
         type: boolean
         default: true
-    description: Optional existing-page label or visibility override. Page ordering is controlled in the page form.
+    description: Optional existing-page label or visibility override. Deleted-page overrides are ignored. Page ordering is controlled in the page form.
   menu-cv:
     label: CV link
     type: object
@@ -203,7 +203,7 @@ components:
       - name: cv
         label: CV version
         type: object
-        description: Optional concise CV presentation. The page title and layout do not determine the CV section.
+        description: Optional concise CV presentation. The page name does not determine the CV section.
         fields:
           - name: include
             label: Offer this item in the CV builder
@@ -247,7 +247,6 @@ content:
       fields:
         - title
         - navigationLabel
-        - layout
         - published
         - order
       sort:
@@ -281,7 +280,7 @@ content:
         label: Show this page in the menu
         type: boolean
         default: true
-        description: Published pages appear automatically. No separate menu setup is needed.
+        description: Published pages appear automatically. Additional links appear under More when needed. No separate menu setup is needed.
       - name: navigationLabel
         label: Short menu label
         type: string
@@ -291,27 +290,13 @@ content:
         type: number
         default: 0
         description: Lower numbers come first in the menu and page lists.
-      - name: layout
-        label: How to display this page
-        type: select
-        default: cards
-        options:
-          values:
-            - name: cards
-              label: 'Cards — projects, adventures, collections'
-            - name: list
-              label: 'List — skills, hobbies, compact items'
-            - name: timeline
-              label: 'Timeline — experience, education, a journey'
-            - name: article
-              label: 'Article — About, an introduction, a standalone page'
       - name: body
         label: Page introduction
         type: rich-text
         options:
           format: markdown
           media: images
-        description: Optional introduction. In Article layout this is the main page content.
+        description: Optional introduction shown in the main reading area when the page opens.
       - name: items
         label: Items
         component: page-item
@@ -319,7 +304,7 @@ content:
           collapsible:
             collapsed: true
             summary: '{fields.title}'
-        description: Add and edit the things that belong on this page. Their display order follows this list.
+        description: Add and edit the things that belong on this page. They appear in its left-hand item list in this order; selecting one opens its details in the main reading area.
   - name: site
     label: Profile & website settings
     type: file
@@ -381,7 +366,7 @@ content:
         blockKey: type
         description: >-
           Normal pages appear automatically. Use this list for Home, CV, and external links. Existing-page
-          overrides affect fallback labels or visibility, not page order.
+          overrides affect fallback labels or visibility, not page order. Overrides for deleted pages are ignored.
         blocks:
           - name: home
             label: Home

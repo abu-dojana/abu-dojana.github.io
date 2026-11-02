@@ -4,16 +4,18 @@
 - Dashboard: <https://app.pagescms.org/>
 - Repository: <https://github.com/abu-dojana/abu-dojana.github.io>
 
-The normal workflow is **Pages → choose a page → Items → Add item → Save**. Make a Projects page, an Experience timeline, a Skills list, an Adventures collection, or something completely different. You do not need to create a category, a separate entry, or a menu record first.
+The normal workflow is **Pages → choose or create a page → Items → Add item → Save**. Make a page for Projects, Skills, Experiences, Adventures, Blogs, Research, Education, Hobbies, or any other subject. Every page owns its items. You do not need to create a category, a separate entry, or a menu record first.
+
+There is no fixed subject list or page-count limit in the site. You can create, rename, unpublish, or delete pages in the dashboard. Published menu links appear automatically, with additional links under **More** when needed.
 
 ## Open the dashboard
 
-1. Sign in to Pages CMS with the GitHub account that owns the repository.
-2. Authorize its GitHub App for `abu-dojana/abu-dojana.github.io` if needed.
+1. Use **Log in** on the website to open the Pages CMS owner dashboard, or open the dashboard link above.
+2. Sign in with the existing GitHub account that owns `abu-dojana/abu-dojana.github.io`.
 3. Open the repository and choose **main**, the live publishing branch.
 4. The sidebar shows **Pages**, **Profile & website settings**, **CV sections**, and images.
 
-The connection must be authorized before browser editing works. A successful dashboard save creates a GitHub commit; a successful publishing workflow then updates the website. Those are separate steps.
+Log in is for owner editing. Visitors can read the website and use its CV builder without an account or signup. A successful dashboard save creates a GitHub commit; a successful publishing workflow then updates the website. Those are separate steps.
 
 All repository files and their history are public. Draft status keeps content off the website, but does not make its file private. Keep private notes, home addresses, transcripts, and private contact details out of the dashboard.
 
@@ -23,22 +25,19 @@ Open **Pages → New page** (the dashboard may label this **New entry** within t
 
 1. Enter a **Page name**, such as Projects, Experience, Skills, Adventures, or Blog.
 2. Enter a **URL name**, such as `projects` or `adventures`. Use lowercase letters, numbers, and hyphens.
-3. Choose a layout:
+3. Add an optional short description and **Page introduction**.
+4. Leave **Show this page in the menu** enabled if you want a menu link. Set an optional short menu label and page position; lower numbers come first.
+5. Enable **Publish on the website** and save when ready.
 
-   | Layout | Useful for |
-   | --- | --- |
-   | Cards | Projects, adventures, illustrated collections |
-   | List | Skills, hobbies, short notes, compact collections |
-   | Timeline | Experience, education, progress, a journey |
-   | Article | About, an introduction, a standalone long page |
-
-4. Add an optional short description and **Page introduction**.
-5. Leave **Show this page in the menu** enabled if you want a menu link. Set an optional short menu label and page position; lower numbers come first.
-6. Enable **Publish on the website** and save when ready.
-
-Published pages with the menu option enabled appear automatically. Their names, menu labels, layouts, and positions are editable in the same form. The menu label can differ from the page heading.
+Published pages with the menu option enabled appear automatically. Their names, menu labels, and positions are editable in the same form. The menu label can differ from the page heading. Additional menu links appear under **More**; they are not dropped when the list grows.
 
 The address is `/pages/its-url-name/`. Keep the URL name unchanged after sharing a link; changing it changes the address.
+
+## Read a page
+
+All subject pages use the same reader. Open a page from the top navigation or **More** to see its overview and introduction. Its items appear in the left-hand list. Selecting an item opens its content in the central reading area, with the owning page and selected item highlighted. On a narrow screen, the item list adapts to the available space.
+
+An item keeps its own `/entries/its-url-name/` link, so you can share it directly. The same page reader surrounds the item when opened from that link. An empty page still works: its introduction remains available and items can be added later.
 
 ## Add things inside a page
 
@@ -55,7 +54,7 @@ Enter its title and any details you want. For a skill or hobby, a title alone is
 - Labeled details such as a role, organization, location, or equipment type.
 - A concise CV presentation, if the item should be available in the CV builder.
 
-Items are collapsed by title. Expand one to edit it, add another with the Items control, and reorder the list to change their order on the page. Enable **Publish this item**, then save the page. The parent page must also be published.
+In the dashboard, items are collapsed by title. Expand one to edit it, add another with the Items control, and reorder the list to change the order in the public page's left-hand item list. Enable **Publish this item**, then save the page. The parent page must also be published.
 
 Leave **Custom item URL name** blank for a stable automatic address based on the item's record ID. A friendly custom name is optional, but must be unique across every page. Keep record IDs unchanged so links and saved CV selections remain valid.
 
@@ -65,7 +64,7 @@ Leave **Custom item URL name** blank for a stable automatic address based on the
 - Turn off the page's publishing switch to hide the whole page and its items. After a successful rebuild, those items also disappear from other public listings and the CV builder.
 - Turn off **Show this page in the menu** to remove only the menu link while keeping the page public.
 - Remove an item from the page's Items list to delete it, then save. GitHub history retains the previous version.
-- Delete a page through Pages CMS to remove it. Remove any optional manual shortcut to it from website settings first.
+- Delete a page through Pages CMS to remove the whole page and its items. After a successful rebuild, its menu link, child item routes, and CV items disappear together. Other pages stay intact. An old optional menu override is ignored automatically, so deleting a page does not require a second settings edit or a code change.
 
 Hiding a link does not make its destination private. Deleting content does not erase its history from the public repository.
 
@@ -73,7 +72,7 @@ Hiding a link does not make its destination private. Deleting content does not e
 
 Under **Profile & website settings**, enter your website name, CV name, headline, short introduction, and any public contact/profile links. Optional fields can stay blank; LinkedIn is optional.
 
-Edit the homepage heading, introduction, and footer in the same form. The homepage lists your published pages; change their positions through each page's **Page position** field. Open your About page under **Pages** and use Article layout for its introduction. The starter About page is titled **Room to keep becoming.** and has **About** as its short menu label.
+Edit the homepage heading, introduction, and footer in the same form. Change page ordering through each page's **Page position** field. Open your About page under **Pages** to edit its introduction and optional items. The starter About page is titled **Room to keep becoming.** and has **About** as its short menu label.
 
 Example items are visibly labeled and excluded from your real default CV. Replace their text with your actual work before turning off **This is example content**. If a whole page is marked as an example, all its items are treated as examples too, regardless of each item's setting.
 
@@ -85,7 +84,7 @@ Ordinary pages need no separate menu setup. Their menu visibility, label, and po
 
 Use **Optional extra navigation links** for Home, CV, and external websites. It is not required when creating a normal page.
 
-An existing-page override, if present, can supply a fallback menu label or hide that page's link. It does not create a second link or change the page's position. A page's own short menu label takes precedence; use its **Page position** field to set order.
+An existing-page override, if present, can supply a fallback menu label or hide that page's link. It does not create a second link or change the page's position. A page's own short menu label takes precedence; use its **Page position** field to set order. If the destination is deleted or unpublished, its shortcut is not shown. Leftover deleted-page overrides do not block publishing and can be removed from settings whenever convenient.
 
 ## Photos and links
 
@@ -123,7 +122,7 @@ Use **System / Light / Dark** on the website. System follows the device preferen
 
 A successful dashboard save alone does not prove deployment succeeded. If validation or tests fail, the last successful website stays available. Read the failed step's error, correct the fields, and save again. Common causes are duplicate URL names, missing cover descriptions, invalid dates/links, or an item referring to a deleted CV section.
 
-Before deleting a CV section, reassign or clear it on affected items. Update or remove a manual page shortcut before deleting/unpublishing its destination.
+Before deleting a CV section, reassign or clear it on affected items. Page deletion needs no manual shortcut cleanup; missing page destinations are ignored.
 
 Changes saved on a development branch are not live until merged into **main**. Pull dashboard changes into the checkout before merging so they are retained.
 

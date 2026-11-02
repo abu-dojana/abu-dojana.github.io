@@ -1,66 +1,38 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getSite } from '../lib/content';
-const site = getSite();
-const { settings } = site;
-const pages = site.pages.filter(page => page.published).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
-const aboutPage = pages.find(page => page.slug === 'about');
+const { settings, pages: allPages } = getSite();
+const pages = allPages.filter(page => page.published).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+const firstPage = pages.find(page => page.items.some(item => item.published)) || pages[0];
+const initials = settings.siteTitle.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('');
 ---
 <BaseLayout description={settings.homeDescription} active="home">
-  <section class="home-hero container">
-    <div class="hero-copy">
-      <p class="eyebrow"><span class="tiny-dot" aria-hidden="true"></span>{settings.homeEyebrow || 'A personal notebook'}</p>
-      <h1>{settings.homeTitle || 'An open notebook for a curious life.'}</h1>
-      <p class="hero-description">{settings.homeDescription || 'A home for things I make, questions I follow, and places I go. There’s room for all of it.'}</p>
-      <div class="hero-actions"><a class="button" href="/pages/">Browse pages <span aria-hidden="true">↗</span></a>{aboutPage && <a class="quiet-link" href={`/pages/${aboutPage.slug}/`}>A little about me <span aria-hidden="true">→</span></a>}</div>
-    </div>
-    <aside class="hero-index" aria-label="Page index">
-      <div class="index-heading"><span>On these pages</span><span aria-hidden="true">✳</span></div>
-      <div class="index-topics">
-        {pages.slice(0, 6).map((page, index) => <a href={`/pages/${page.slug}/`}><span class="index-number">{String(index + 1).padStart(2, '0')}</span><span>{page.navigationLabel || page.title}</span><span aria-hidden="true">↗</span></a>)}
-        {!pages.length && <p class="muted">A new notebook, ready to grow.</p>}
+  <section class="home-workspace container" aria-label="Welcome">
+    <div class="home-main-panel">
+      <div class="home-panel-top"><p class="eyebrow">{settings.homeEyebrow || 'A personal corner of the internet'}</p><span class="home-mark" aria-hidden="true">✳</span></div>
+      <div class="home-main-copy">
+        <h1>{settings.homeTitle || 'A space for every part of the story.'}</h1>
+        <p class="home-description">{settings.homeDescription || 'Things made, experiences collected, and ideas worth keeping. Follow any chapter that catches your curiosity.'}</p>
+        <div class="home-actions">{firstPage && <a class="button" href={`/pages/${firstPage.slug}/`}>Open a chapter <span aria-hidden="true">→</span></a>}<a class="button secondary" href="/cv/">View CV <span aria-hidden="true">↗</span></a></div>
       </div>
-      <p class="index-footnote">Work, ideas, and the occasional detour.<br />{pages.length > 6 ? <a href="/pages/">See every page →</a> : 'Filed here as life unfolds.'}</p>
+      <div class="home-panel-bottom"><span class="home-status-dot" aria-hidden="true"></span><p>A little work. A little life. Room for both.</p><a href="/pages/">All pages <span aria-hidden="true">↗</span></a></div>
+    </div>
+    <aside class="home-side-panel" aria-label="Profile and pages">
+      <div class="home-profile"><div class="home-avatar" aria-hidden="true">{initials}</div><p class="home-profile-label">{settings.name || settings.siteTitle}</p>{settings.headline && <p class="home-headline">{settings.headline}</p>}{settings.bio && <p class="home-bio">{settings.bio}</p>}{settings.location && <p class="home-location">⌖ {settings.location}</p>}</div>
+      <div class="home-page-list"><p class="eyebrow">In this space</p><nav aria-label="Browse pages"><ul>{pages.map(page => <li><a href={`/pages/${page.slug}/`}><span>{page.navigationLabel || page.title}</span><span aria-hidden="true">↗</span></a></li>)}</ul></nav>{!pages.length && <p class="muted">The first chapter is on its way.</p>}</div>
+      {(settings.email || settings.links.length > 0) && <div class="home-contact">{settings.email && <a href={`mailto:${settings.email}`}>Get in touch ↗</a>}{settings.links.map(link => <a href={link.url}>{link.label} ↗</a>)}</div>}
     </aside>
   </section>
-
-  <section class="container home-pages" aria-labelledby="pages-heading">
-    <div class="section-heading"><div><p class="eyebrow">A place for every part of the story</p><h2 id="pages-heading">Find your page<span class="accent-period">.</span></h2></div><a class="quiet-link" href="/pages/">All pages <span aria-hidden="true">↗</span></a></div>
-    {pages.length ? <div class="page-directory-grid">{pages.map((page, index) => {
-      const count = page.items.filter(item => item.published).length;
-      return <article class="page-directory-card"><div class="page-card-meta"><span>{String(index + 1).padStart(2, '0')}</span>{page.example && <span class="page-example-label">Example</span>}</div><h3><a href={`/pages/${page.slug}/`}>{page.navigationLabel || page.title}<span aria-hidden="true">↗</span></a></h3>{page.summary && <p>{page.summary}</p>}<span class="page-card-count">{count ? `${count} ${count === 1 ? 'item' : 'items'}` : 'Open page'}</span></article>;
-    })}</div> : <div class="empty-state"><h3>The first page is still to come.</h3><p>Published pages will appear here.</p></div>}
-  </section>
-
-  <section class="container closing-note"><span class="closing-symbol" aria-hidden="true">✳</span><div><p class="eyebrow">Always a work in progress</p><h2>More than one kind of story.</h2><p>This space has room to change, just like the person behind it.</p></div><a class="button secondary" href="/cv/">View the CV <span aria-hidden="true">↗</span></a></section>
 </BaseLayout>
 <style>
-  .home-hero { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(3rem, 7vw, 7rem); align-items: center; padding-top: 6rem; padding-bottom: 6rem; }
-  .tiny-dot { width: .45rem; height: .45rem; background: var(--accent); display: inline-block; border-radius: 50%; margin-right: .65rem; vertical-align: middle; }
-  h1 { font-family: var(--serif); font-size: clamp(3.3rem, 6.4vw, 5.8rem); line-height: 1.01; letter-spacing: -.055em; font-weight: 450; margin: 1.5rem 0 1.75rem; max-width: 13ch; text-wrap: balance; white-space: pre-line; }
-  .hero-description { max-width: 44ch; color: var(--muted); font-size: 1.03rem; line-height: 1.8; }
-  .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.7rem; margin-top: 2rem; }
-  .quiet-link { display: inline-flex; align-items: center; gap: .7rem; text-decoration: none; font-size: .8rem; font-weight: 550; color: var(--ink); }
-  .quiet-link:hover { color: var(--accent); }
-  .hero-index { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.6rem 1.9rem; background: var(--surface); position: relative; }
-  .hero-index::before { position: absolute; content: ''; height: 6px; left: 1.5rem; right: 1.5rem; top: -7px; border: 1px solid var(--line); border-bottom: none; border-radius: 4px 4px 0 0; }
-  .index-heading { display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; font-size: .67rem; letter-spacing: .12em; font-weight: 600; padding-bottom: 1.3rem; }
-  .index-heading > :last-child { color: var(--accent); font-size: 1.6rem; line-height: 1; }
-  .index-topics a { display: grid; grid-template-columns: 1.8rem 1fr auto; gap: .65rem; align-items: center; border-top: 1px solid var(--line); padding: 1rem 0; text-decoration: none; color: var(--ink); font-family: var(--serif); font-size: 1.12rem; }
-  .index-topics a:hover { color: var(--accent); }
-  .index-number { color: var(--muted); font-family: ui-monospace, monospace; font-size: .65rem; }
-  .index-topics a > :last-child { font-family: system-ui, sans-serif; font-size: .9rem; color: var(--accent); }
-  .index-footnote { border-top: 1px solid var(--line); padding-top: 1rem; margin-bottom: 0; color: var(--muted); font-size: .73rem; line-height: 1.7; }
-  .index-footnote a { color: var(--accent); }
-  .home-pages { border-top: 1px solid var(--line); padding-top: 2.5rem; padding-bottom: 4rem; }
-  .section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; margin-bottom: 2rem; }
-  h2 { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 450; letter-spacing: -.04em; line-height: 1.1; margin: .65rem 0 0; }
-  .accent-period { color: var(--accent); }
-  .closing-note { border-top: 1px solid var(--line); padding-block: 3rem 4rem; display: flex; align-items: center; gap: 1.6rem; }
-  .closing-symbol { font-size: 3.8rem; font-family: var(--serif); color: var(--accent); }
-  .closing-note h2 { font-size: 1.9rem; }
-  .closing-note p:not(.eyebrow) { margin: .65rem 0 0; color: var(--muted); font-size: .87rem; }
-  .closing-note .button { margin-left: auto; flex-shrink: 0; }
-  @media (max-width: 760px) { .home-hero { grid-template-columns: 1fr; padding-block: 3rem; gap: 3rem; } h1 { max-width: 15ch; } .hero-index { max-width: none; } .section-heading { align-items: flex-start; } .section-heading > .quiet-link { margin-top: .3rem; white-space: nowrap; } .closing-note { flex-wrap: wrap; } .closing-note .button { margin-left: 0; } .closing-symbol { font-size: 2.7rem; } }
-  @media (max-width: 420px) { .section-heading { flex-direction: column; gap: 1rem; } .hero-actions { gap: 1.2rem; } }
+  .home-workspace{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(250px,1fr);gap:30px;align-items:stretch;padding-block:36px;min-height:calc(100svh - 255px)}
+  .home-main-panel{display:flex;flex-direction:column;min-width:0;min-height:clamp(400px,calc(100svh - 330px),550px);border:1px solid var(--line);border-radius:30px;background:var(--surface);padding:32px 38px 24px;position:relative;overflow:hidden}
+  .home-panel-top{display:flex;align-items:center;justify-content:space-between;gap:20px}.home-panel-top .eyebrow{margin:0;font-size:10px}.home-mark{font-size:33px;line-height:1;color:var(--accent)}
+  .home-main-copy{margin-block:auto;padding:32px 0;max-width:660px}.home-main-copy h1{font-size:clamp(2.8rem,4.9vw,4.6rem);font-weight:400;line-height:1.07;letter-spacing:-.045em;margin:0 0 28px;white-space:pre-line;text-wrap:balance;max-width:20ch}.home-description{font-size:16px;line-height:1.85;max-width:49ch;color:var(--muted);margin-bottom:30px}.home-actions{display:flex;flex-wrap:wrap;gap:12px}
+  .home-panel-bottom{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:20px;font-size:10px;color:var(--muted)}.home-panel-bottom p{margin:0}.home-panel-bottom a{margin-left:auto;white-space:nowrap;color:var(--accent)}.home-status-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;flex:none}
+  .home-side-panel{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:26px;min-width:0;align-self:center;max-height:none}.home-profile{border-bottom:1px solid var(--line);padding-bottom:22px}.home-avatar{display:flex;align-items:center;justify-content:center;height:62px;width:62px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--serif);font-size:24px;margin-bottom:18px}.home-profile-label{font-size:19px;font-weight:600;letter-spacing:-.03em;margin:0}.home-headline,.home-bio,.home-location{font-size:12px;color:var(--muted);line-height:1.7;margin:8px 0 0}.home-bio{max-height:120px;overflow-y:auto;white-space:pre-line}.home-page-list{min-height:0;padding-top:22px}.home-page-list .eyebrow{margin-bottom:10px}.home-page-list nav{max-height:280px;overflow-y:auto;scrollbar-width:thin;padding-right:6px}.home-page-list ul{list-style:none;padding:0;margin:0}.home-page-list li+li{border-top:1px solid var(--line)}.home-page-list a{display:flex;justify-content:space-between;gap:18px;padding:9px 0;font-size:12px;overflow-wrap:anywhere}.home-page-list a>span:last-child{color:var(--accent);flex:none}.home-contact{display:flex;flex-wrap:wrap;gap:8px 16px;border-top:1px solid var(--line);margin-top:16px;padding-top:16px;font-size:11px;color:var(--accent)}
+  @media(min-width:1500px){.home-workspace{padding-block:50px}.home-main-panel{min-height:610px}}
+  @media(max-width:850px){.home-workspace{grid-template-columns:minmax(0,1.6fr) minmax(220px,1fr);gap:20px}.home-main-panel{padding:25px;min-height:520px}.home-main-copy h1{font-size:3.2rem}.home-side-panel{padding:21px}.home-description{font-size:14px}.home-panel-bottom{flex-wrap:wrap}.home-panel-bottom a{margin-left:0}}
+  @media(max-width:650px){.home-workspace{grid-template-columns:1fr;padding-block:24px;min-height:0}.home-main-panel{min-height:440px;border-radius:20px;padding:24px}.home-main-copy{padding-block:32px}.home-main-copy h1{font-size:clamp(2.7rem,10vw,3.6rem)}.home-side-panel{max-height:none}.home-page-list nav{max-height:260px}.home-profile{display:grid;grid-template-columns:52px minmax(0,1fr);column-gap:15px;align-items:center}.home-avatar{grid-row:1/5;height:52px;width:52px;margin:0;font-size:20px}.home-headline,.home-bio,.home-location{grid-column:2}.home-bio{max-height:none}.home-panel-bottom a{margin-left:auto}}
+  @media print{.home-workspace{display:block;min-height:0}.home-main-panel{min-height:0;border:0;padding:0}.home-side-panel{margin-top:25px}.home-actions{display:none}}
 </style>

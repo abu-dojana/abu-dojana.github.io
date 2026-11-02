@@ -245,3 +245,90 @@ describe('automatic page navigation', () => {
     expect(potteryLinks[0].label).toBe('Clay work');
   });
 });
+
+describe('page lifecycle without code changes', () => {
+  it('deletes a whole page and its child routes, navigation, and CV data despite a stale manual override', () => {
+    const fixtureRoot = makeFixture({ navigation: [
+      { id: ids.homeNav, label: 'Home', type: 'home', visible: true },
+      { id: ids.pageNav, label: 'My collection', type: 'page', target: ids.pottery, visible: true },
+    ] });
+    writePage(fixtureRoot, 'pottery', {
+      id: ids.pottery, slug: 'pottery', title: 'Pottery', published: true,
+      items: [cvItem(ids.bowl, 'A bowl', { slug: 'a-bowl' })],
+    });
+    const before = getSite(fixtureRoot);
+    const savedSelection = serializeCvState(createDefaultCvState(createCvModel(before)));
+    expect(getNavigation(before).some((link) => link.target === ids.pottery)).toBe(true);
+
+    fs.unlinkSync(path.join(fixtureRoot, 'pages', 'pottery.md'));
+    const after = getSite(fixtureRoot);
+    expect(after.pages).toEqual([]);
+    expect(after.entries).toEqual([]);
+    expect(after.entries.filter((record) => record.published).map(entryUrl)).not.toContain('/entries/a-bowl/');
+    expect(getNavigation(after).some((link) => link.type === 'page')).toBe(false);
+    expect(getNavigation(after).map((link) => navHref(link, after))).toEqual(['/']);
+    const staleOverride = after.settings.navigation.find((link) => link.type === 'page')!;
+    expect(navHref(staleOverride, after)).toBe('/pages/');
+    const model = createCvModel(after);
+    expect(model.sections).toEqual([]);
+    expect(parseCvState(savedSelection, model)).toMatchObject({
+      selectedEntryIds: [], selectedSectionIds: [], entryOrder: [], sectionOrder: [],
+    });
+  });
+
+  it('unpublishes or deletes one page without hiding or changing another page and its items', () => {
+    const fixtureRoot = makeFixture({ navigation: [
+      { id: ids.pageNav, label: 'Clay', type: 'page', target: ids.pottery, visible: true },
+    ] });
+    const firstPage = {
+      id: ids.pottery, slug: 'pottery', title: 'Pottery', published: true,
+      items: [cvItem(ids.bowl, 'A bowl', { slug: 'a-bowl' })],
+    };
+    writePage(fixtureRoot, 'pottery', firstPage);
+    writePage(fixtureRoot, 'hobbies', {
+      id: ids.hobbies, slug: 'hobbies', title: 'Other hobbies', published: true,
+      items: [cvItem(ids.glaze, 'A separate practice', { slug: 'separate-practice' })],
+    });
+    const original = getSite(fixtureRoot);
+    const originalOther = original.pages.find((page) => page.id === ids.hobbies);
+    const savedSelection = serializeCvState(createDefaultCvState(createCvModel(original)));
+
+    writePage(fixtureRoot, 'pottery', { ...firstPage, published: false });
+    const unpublished = getSite(fixtureRoot);
+    expect(unpublished.entries.find((record) => record.id === ids.bowl)?.published).toBe(false);
+    expect(getNavigation(unpublished).filter((link) => link.type === 'page').map((link) => link.target)).toEqual([ids.hobbies]);
+    expect(unpublished.entries.filter((record) => record.published).map(entryUrl)).toEqual(['/entries/separate-practice/']);
+    expect(createCvModel(unpublished).sections.flatMap((section) => section.entries.map((record) => record.id))).toEqual([ids.glaze]);
+
+    fs.unlinkSync(path.join(fixtureRoot, 'pages', 'pottery.md'));
+    const deleted = getSite(fixtureRoot);
+    expect(deleted.pages).toEqual([originalOther]);
+    expect(deleted.entries.map((record) => record.id)).toEqual([ids.glaze]);
+    expect(parseCvState(savedSelection, createCvModel(deleted)).selectedEntryIds).toEqual([ids.glaze]);
+  });
+
+  it('loads and navigates thirty arbitrarily named pages, including empty pages, without a fixed subject list', () => {
+    const fixtureRoot = makeFixture();
+    for (let index = 1; index <= 30; index += 1) {
+      const suffix = String(index).padStart(12, '0');
+      writePage(fixtureRoot, `collection-${index}`, {
+        id: `aa000000-0000-4000-8000-${suffix}`,
+        slug: `field-collection-${index}`,
+        title: `Field collection ${index}`,
+        published: true,
+        order: 30 - index,
+        items: index % 3 === 0 ? [] : [item(`bb000000-0000-4000-8000-${suffix}`, `Observation ${index}`)],
+      });
+    }
+    const site = getSite(fixtureRoot);
+    const links = getNavigation(site).filter((link) => link.type === 'page');
+    expect(site.pages).toHaveLength(30);
+    expect(links).toHaveLength(30);
+    expect(site.entries).toHaveLength(20);
+    expect(site.pages.filter((page) => page.items.length === 0)).toHaveLength(10);
+    expect(links[0].label).toBe('Field collection 30');
+    expect(links[29].label).toBe('Field collection 1');
+    expect(new Set(links.map((link) => navHref(link, site))).size).toBe(30);
+    expect(links.every((link) => !navHref(link, site).includes('undefined'))).toBe(true);
+  });
+});

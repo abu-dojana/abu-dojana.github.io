@@ -1,17 +1,15 @@
 ---
 import { getSite, getNavigation, navHref } from '../lib/content';
+import { isCurrentNavigationItem } from '../lib/navigation';
 import '../styles/global.css';
+import '../styles/chrome.css';
 interface Props { title?: string; description?: string; active?: string; wide?: boolean }
 const { title, description, active = '', wide = false } = Astro.props;
 const site = getSite();
 const { settings } = site;
-const pages = site.pages.filter(page => page.published).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 const navigation = getNavigation(site).filter(item => item.visible && item.type !== 'explore' && item.type !== 'category');
-const primaryPageIds = new Set(navigation.filter(item => item.type === 'page').slice(0, 3).map(item => item.id));
-const primaryNavigation = navigation.filter(item => item.type === 'home' || item.type === 'cv' || primaryPageIds.has(item.id));
-const moreNavigation = navigation.filter(item => !primaryNavigation.includes(item));
-const isCurrent = (item: typeof navigation[number]) => Astro.url.pathname === navHref(item, site) || (item.type === 'page' && active === item.target);
-const moreIsCurrent = moreNavigation.some(isCurrent) || Astro.url.pathname === '/pages/';
+const isCurrent = (item: typeof navigation[number]) => isCurrentNavigationItem(item, navHref(item, site), Astro.url.pathname, active);
+const brandInitial = Array.from(settings.siteTitle.trim())[0]?.toUpperCase() || 'A';
 const pageTitle = title ? `${title} · ${settings.siteTitle}` : `${settings.siteTitle} · An open notebook`;
 const pageDescription = description || settings.homeDescription || 'A personal collection of work, stories, experiences, and things worth remembering.';
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -39,38 +37,59 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     {settings.preview && <div class="preview-strip"><span class="preview-dot"></span> A work in progress <span class="preview-divider">/</span> Example content is labeled. Make this space your own.</div>}
-    <header class="site-header">
-      <div class="header-inner container">
-        <a href="/" class="wordmark" aria-label={`${settings.siteTitle}, home`}><span class="brand-mark" aria-hidden="true">a<span>↗</span></span><span>{settings.siteTitle}<small>A PERSONAL NOTEBOOK</small></span></a>
-        <nav class="site-nav" aria-label="Main navigation">
-          {primaryNavigation.map(item => <a href={navHref(item, site)} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}
-          <details class="nav-more" data-current={moreIsCurrent ? 'true' : undefined}>
-            <summary>More <span aria-hidden="true">⌄</span></summary>
-            <div class="nav-more-menu">{moreNavigation.map(item => <a href={navHref(item, site)} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}<a class="all-pages-link" href="/pages/" aria-current={Astro.url.pathname === '/pages/' ? 'page' : undefined}>All pages <span aria-hidden="true">↗</span></a></div>
+    <header class="site-header chrome-header">
+      <div class="chrome-topbar chrome-container">
+        <a href="/" class="chrome-brand" aria-label={`${settings.siteTitle}, home`}>
+          <span class="chrome-brand-mark" aria-hidden="true">{brandInitial}</span>
+          <span class="chrome-brand-name">{settings.siteTitle}</span>
+        </a>
+        <div class="chrome-actions">
+          <div class="chrome-theme" data-theme-choice="system">
+            <span class="chrome-theme-icon" aria-hidden="true">
+              <svg data-theme-icon="system" viewBox="0 0 20 20"><rect x="2" y="3" width="16" height="11" rx="1.5"/><path d="M7 17h6M10 14v3"/></svg>
+              <svg data-theme-icon="light" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.4 1.4M14.6 14.6 16 16M4 16l1.4-1.4M14.6 5.4 16 4"/></svg>
+              <svg data-theme-icon="dark" viewBox="0 0 20 20"><path d="M16.9 12.8A7.5 7.5 0 0 1 7.2 3.1a7.5 7.5 0 1 0 9.7 9.7Z"/></svg>
+            </span>
+            <label for="theme-select" class="sr-only">Color theme</label>
+            <select id="theme-select" class="chrome-theme-select" aria-label="Color theme" disabled><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+          </div>
+          <a href="https://app.pagescms.org/" class="chrome-login" title="Owner editor access" aria-label="Log in to the website editor">
+            <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="6.2" r="3"/><path d="M3.5 17v-1.3a6.5 6.5 0 0 1 13 0V17"/></svg>
+            Log in
+          </a>
+        </div>
+      </div>
+      <div class="chrome-nav-band">
+        <nav class="chrome-nav chrome-container" aria-label="Main navigation" data-responsive-navigation>
+          <div class="chrome-nav-links" data-nav-links>
+            {navigation.map(item => <a class="chrome-nav-link" href={navHref(item, site)} data-nav-item={item.id} data-nav-pinned={item.type === 'home' || item.type === 'cv' ? 'true' : undefined} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}
+          </div>
+          <details class="chrome-more" data-nav-more data-directory-current={Astro.url.pathname === '/pages/' ? 'true' : undefined} data-current={Astro.url.pathname === '/pages/' ? 'true' : undefined}>
+            <summary aria-label="More pages">More <svg aria-hidden="true" viewBox="0 0 12 12"><path d="m2 4 4 4 4-4"/></svg></summary>
+            <div class="chrome-more-panel">
+              <div data-nav-overflow hidden></div>
+              <a class="chrome-directory-link" href="/pages/" aria-current={Astro.url.pathname === '/pages/' ? 'page' : undefined}>All pages <span aria-hidden="true">↗</span></a>
+            </div>
           </details>
         </nav>
-        <div class="theme-picker"><label for="theme-select" class="sr-only">Color theme</label><span aria-hidden="true">◐</span><select id="theme-select" aria-label="Color theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
       </div>
     </header>
     <main id="main" class:list={[{ 'wide-page': wide }]}><slot /></main>
-    <footer class="site-footer container">
-      <div class="footer-brand"><a href="/" class="footer-name">{settings.siteTitle}<span aria-hidden="true"> ↗</span></a><p>{settings.footerNote || 'A little work. A little life. Always in progress.'}</p><div class="footer-links">{settings.email && <a href={`mailto:${settings.email}`}>Say hello ↗</a>}{settings.links.map(link => <a href={link.url}>{link.label} ↗</a>)}<a href="https://app.pagescms.org/" class="editor-link">Edit this space ↗</a></div><small class="footer-copyright">© {new Date().getUTCFullYear()} · Built with curiosity.</small></div>
-      <nav class="footer-pages" aria-label="All pages"><p class="eyebrow">The pages</p><ul>{pages.map(page => <li><a href={`/pages/${page.slug}/`} aria-current={Astro.url.pathname === `/pages/${page.slug}/` ? 'page' : undefined}>{page.navigationLabel || page.title}</a></li>)}</ul><a class="footer-directory-link" href="/pages/">Browse all pages <span aria-hidden="true">↗</span></a></nav>
+    <footer class="site-footer chrome-footer">
+      <div class="chrome-footer-inner chrome-container">
+        <div class="chrome-footer-copy">
+          <a href="/">© {new Date().getUTCFullYear()} {settings.siteTitle}</a>
+          {settings.footerNote && <p class="chrome-footer-note">{settings.footerNote}</p>}
+        </div>
+        <nav class="chrome-footer-links" aria-label="Footer navigation">
+          {settings.email && <a href={`mailto:${settings.email}`}>Contact</a>}
+          {settings.links.map(link => <a href={link.url}>{link.label}</a>)}
+          <a href="/pages/">All pages <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
     </footer>
     <script>
-      const picker = document.querySelector<HTMLSelectElement>('#theme-select');
-      if (picker) {
-        try { picker.value = localStorage.getItem('notebook-theme') || 'system'; } catch {}
-        picker.addEventListener('change', () => {
-          const theme = picker.value;
-          if (theme === 'system') delete document.documentElement.dataset.theme;
-          else document.documentElement.dataset.theme = theme;
-          try { if (theme === 'system') localStorage.removeItem('notebook-theme'); else localStorage.setItem('notebook-theme', theme); } catch {}
-        });
-      }
-      document.querySelector<HTMLDetailsElement>('.nav-more')?.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') { const menu = event.currentTarget as HTMLDetailsElement; menu.open = false; menu.querySelector('summary')?.focus(); }
-      });
+      import '../scripts/navigation';
     </script>
   </body>
 </html>
