@@ -1,12 +1,19 @@
 ---
-import { getSite, navHref } from '../lib/content';
+import { getSite, getNavigation, navHref } from '../lib/content';
 import '../styles/global.css';
 interface Props { title?: string; description?: string; active?: string; wide?: boolean }
-const { title, description, wide = false } = Astro.props;
+const { title, description, active = '', wide = false } = Astro.props;
 const site = getSite();
 const { settings } = site;
+const pages = site.pages.filter(page => page.published).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+const navigation = getNavigation(site).filter(item => item.visible && item.type !== 'explore' && item.type !== 'category');
+const primaryPageIds = new Set(navigation.filter(item => item.type === 'page').slice(0, 3).map(item => item.id));
+const primaryNavigation = navigation.filter(item => item.type === 'home' || item.type === 'cv' || primaryPageIds.has(item.id));
+const moreNavigation = navigation.filter(item => !primaryNavigation.includes(item));
+const isCurrent = (item: typeof navigation[number]) => Astro.url.pathname === navHref(item, site) || (item.type === 'page' && active === item.target);
+const moreIsCurrent = moreNavigation.some(isCurrent) || Astro.url.pathname === '/pages/';
 const pageTitle = title ? `${title} · ${settings.siteTitle}` : `${settings.siteTitle} · An open notebook`;
-const pageDescription = description || settings.homeDescription || 'A personal collection of work, stories, experiments, and things worth remembering.';
+const pageDescription = description || settings.homeDescription || 'A personal collection of work, stories, experiences, and things worth remembering.';
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 <!doctype html>
@@ -31,20 +38,24 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    {settings.preview && <div class="preview-strip"><span class="preview-dot"></span> A work in progress <span class="preview-divider">/</span> Example entries are labeled. Make this space your own.</div>}
+    {settings.preview && <div class="preview-strip"><span class="preview-dot"></span> A work in progress <span class="preview-divider">/</span> Example content is labeled. Make this space your own.</div>}
     <header class="site-header">
       <div class="header-inner container">
         <a href="/" class="wordmark" aria-label={`${settings.siteTitle}, home`}><span class="brand-mark" aria-hidden="true">a<span>↗</span></span><span>{settings.siteTitle}<small>A PERSONAL NOTEBOOK</small></span></a>
         <nav class="site-nav" aria-label="Main navigation">
-          {settings.navigation.filter(n => n.visible).map(item => <a href={navHref(item, site)} aria-current={Astro.url.pathname === navHref(item, site) ? 'page' : undefined}>{item.label}</a>)}
+          {primaryNavigation.map(item => <a href={navHref(item, site)} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}
+          <details class="nav-more" data-current={moreIsCurrent ? 'true' : undefined}>
+            <summary>More <span aria-hidden="true">⌄</span></summary>
+            <div class="nav-more-menu">{moreNavigation.map(item => <a href={navHref(item, site)} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}<a class="all-pages-link" href="/pages/" aria-current={Astro.url.pathname === '/pages/' ? 'page' : undefined}>All pages <span aria-hidden="true">↗</span></a></div>
+          </details>
         </nav>
         <div class="theme-picker"><label for="theme-select" class="sr-only">Color theme</label><span aria-hidden="true">◐</span><select id="theme-select" aria-label="Color theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
       </div>
     </header>
     <main id="main" class:list={[{ 'wide-page': wide }]}><slot /></main>
     <footer class="site-footer container">
-      <div><a href="/" class="footer-name">{settings.siteTitle}<span aria-hidden="true"> ↗</span></a><p>{settings.footerNote || 'A little work. A little life. Always in progress.'}</p></div>
-      <div class="footer-links">{settings.email && <a href={`mailto:${settings.email}`}>Say hello ↗</a>}{settings.links.map(link => <a href={link.url}>{link.label} ↗</a>)}<a href="https://app.pagescms.org/" class="editor-link">Edit this space ↗</a><small>© {new Date().getUTCFullYear()} · Built with curiosity.</small></div>
+      <div class="footer-brand"><a href="/" class="footer-name">{settings.siteTitle}<span aria-hidden="true"> ↗</span></a><p>{settings.footerNote || 'A little work. A little life. Always in progress.'}</p><div class="footer-links">{settings.email && <a href={`mailto:${settings.email}`}>Say hello ↗</a>}{settings.links.map(link => <a href={link.url}>{link.label} ↗</a>)}<a href="https://app.pagescms.org/" class="editor-link">Edit this space ↗</a></div><small class="footer-copyright">© {new Date().getUTCFullYear()} · Built with curiosity.</small></div>
+      <nav class="footer-pages" aria-label="All pages"><p class="eyebrow">The pages</p><ul>{pages.map(page => <li><a href={`/pages/${page.slug}/`} aria-current={Astro.url.pathname === `/pages/${page.slug}/` ? 'page' : undefined}>{page.navigationLabel || page.title}</a></li>)}</ul><a class="footer-directory-link" href="/pages/">Browse all pages <span aria-hidden="true">↗</span></a></nav>
     </footer>
     <script>
       const picker = document.querySelector<HTMLSelectElement>('#theme-select');
@@ -57,6 +68,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
           try { if (theme === 'system') localStorage.removeItem('notebook-theme'); else localStorage.setItem('notebook-theme', theme); } catch {}
         });
       }
+      document.querySelector<HTMLDetailsElement>('.nav-more')?.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') { const menu = event.currentTarget as HTMLDetailsElement; menu.open = false; menu.querySelector('summary')?.focus(); }
+      });
     </script>
   </body>
 </html>

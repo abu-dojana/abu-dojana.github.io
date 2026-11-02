@@ -30,7 +30,7 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 
     <div class="cv-setup cv-app-only" data-cv-builder-setup hidden>
       <h2>Your CV is still taking shape.</h2>
-      <p>Add your name and at least one real entry marked for CV inclusion in the editor. Until then, explore the layout with labelled examples.</p>
+      <p>Add your name under Profile & website settings. Then use Pages → choose or create a page → Items → Add item. Open the item's CV version, choose a CV section, and enable inclusion. Publish the item and its page when ready. Until then, try the labelled examples.</p>
       <a class="cv-button cv-button-primary" href={`${base}cv/build/?demo=1`}>Try the example builder <span aria-hidden="true">→</span></a>
     </div>
 
@@ -58,7 +58,7 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
           <p class="cv-help" id="cv-contact-help">Appears only in this preview and your printout. It is never saved by this builder.</p>
         </fieldset>
 
-        <div class="cv-selection-heading"><h3>Sections & entries</h3><p>Use the arrows to change their order.</p></div>
+        <div class="cv-selection-heading"><h3>Sections & items</h3><p>Use the arrows to change their order.</p></div>
         <div data-cv-controls></div>
         <div class="cv-editor-actions">
           <button type="button" class="cv-button cv-button-primary" data-cv-print>Print / Save as PDF <span aria-hidden="true">↗</span></button>

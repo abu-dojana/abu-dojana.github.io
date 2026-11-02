@@ -17,8 +17,8 @@ if (root) {
   if (!model?.ready) {
     setup.hidden = false;
     if (demo) {
-      setup.querySelector('h2')!.textContent = 'No example CV entries yet.';
-      setup.querySelector('p')!.textContent = 'Add a published example entry, choose a CV section, and turn on CV inclusion to try this layout.';
+      setup.querySelector('h2')!.textContent = 'No example CV items yet.';
+      setup.querySelector('p')!.textContent = 'In the dashboard, use Pages → choose or create a page → Items → Add item. Mark it as an example, open CV version, choose a CV section, and enable inclusion. Publish the item and its page to try this layout.';
       const link = setup.querySelector<HTMLAnchorElement>('a');
       if (link) link.hidden = true;
     }
@@ -48,7 +48,7 @@ if (root) {
     catch { storageUnavailable(); }
 
     root.querySelector<HTMLElement>('[data-cv-mode-note]')!.textContent = demo
-      ? 'Example mode. Sample entries stay labelled in your preview and printout.'
+      ? 'Example mode. Sample items stay labelled in your preview and printout.'
       : 'This changes your own CV preview. The public website stays as it is.';
 
     function persistSelection() {
@@ -160,7 +160,7 @@ if (root) {
       const count = visible.reduce((sum, section) => sum + section.entries.length, 0);
       printButton.disabled = count === 0;
       preview.querySelector<HTMLElement>('[data-cv-empty-selection]')!.hidden = count > 0;
-      saveStatus.textContent = `${announcement ? `${announcement} ` : ''}${count} ${count === 1 ? 'entry' : 'entries'} in your CV.`;
+      saveStatus.textContent = `${announcement ? `${announcement} ` : ''}${count} ${count === 1 ? 'item' : 'items'} in your CV.`;
       if (activeKey) {
         const nextFocus = [...controls.querySelectorAll<HTMLElement>('[data-cv-focus]')].find((node) => node.dataset.cvFocus === activeKey);
         if (nextFocus && !(nextFocus instanceof HTMLButtonElement && nextFocus.disabled)) nextFocus.focus({ preventScroll: true });

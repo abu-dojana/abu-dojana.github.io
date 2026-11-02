@@ -7,28 +7,31 @@ export function getStaticPaths() {
   return site.entries.filter((entry) => entry.published).map((entry) => ({ params: { slug: entry.slug }, props: { entry, site } }));
 }
 const { entry, site } = Astro.props as { entry: Entry; site: SiteContent };
-const categories = site.categories.filter((category) => entry.categories.includes(category.id));
+const owner = site.pages.find(page => page.id === entry.pageId && page.published);
+const ownerUrl = owner ? `/pages/${owner.slug}/` : '/pages/';
 const progressLabels = { planned: 'Planned', 'in-progress': 'In progress', completed: 'Completed' };
+const hasBody = Boolean(entry.body.trim());
+const dateLabel = entry.date ? `${formatDate(entry.date)}${entry.endDate ? ` — ${formatDate(entry.endDate)}` : ''}` : entry.endDate ? `Until ${formatDate(entry.endDate)}` : '';
 ---
-<BaseLayout title={entry.title} description={entry.summary} active="explore">
+<BaseLayout title={entry.title} description={entry.summary} active={owner?.id}>
   <article class="container entry-page">
-    <a class="breadcrumb" href="/explore/">← Back to the notebook</a>
+    <a class="breadcrumb" href={ownerUrl}>← {owner ? `Back to ${owner.navigationLabel || owner.title}` : 'All pages'}</a>
     <header class="entry-heading">
-      <div class="entry-topics">{categories.map((category) => <a href={`/categories/${category.slug}/`}>{category.title}</a>)}{entry.example && <span class="example-label">Example entry</span>}</div>
+      <div class="entry-topics">{owner && <a href={ownerUrl}>{owner.navigationLabel || owner.title}</a>}{entry.example && <span class="example-label">Example item</span>}</div>
       <h1>{entry.title}</h1>
-      <p class="entry-summary">{entry.summary}</p>
-      <div class="entry-byline">{entry.date && <span>{formatDate(entry.date)}{entry.endDate ? ` — ${formatDate(entry.endDate)}` : ''}</span>}<span>{entry.readingMinutes} min read</span>{entry.progress && <span>{progressLabels[entry.progress]}</span>}</div>
+      {entry.summary && <p class="entry-summary">{entry.summary}</p>}
+      {(dateLabel || hasBody || entry.progress) && <div class="entry-byline">{dateLabel && <span>{dateLabel}</span>}{hasBody && <span>{entry.readingMinutes} min read</span>}{entry.progress && <span>{progressLabels[entry.progress]}</span>}</div>}
     </header>
     {entry.cover && <figure class="entry-cover"><img src={entry.cover} alt={entry.coverAlt || ''} width="1200" height="800" /></figure>}
     <div class="entry-content">
-      <div class="entry-body"><div class="prose" set:html={entry.html}></div>{entry.tags.length > 0 && <div class="entry-tags" aria-label="Tags">{entry.tags.map((tag) => <a class="pill" href={`/explore/?tag=${encodeURIComponent(tag)}`}>#{tag}</a>)}</div>}</div>
+      <div class="entry-body"><div class="prose" set:html={entry.html}></div>{entry.tags.length > 0 && <div class="entry-tags" aria-label="Tags">{entry.tags.map((tag) => <span class="pill">#{tag}</span>)}</div>}</div>
       {(entry.details.length > 0 || entry.links.length > 0 || entry.example) && <aside class="entry-aside">
-        {entry.example && <div class="example-note"><p class="eyebrow">An example page</p><p>This entry demonstrates the notebook. It describes sample content, not a personal accomplishment.</p></div>}
+        {entry.example && <div class="example-note"><p class="eyebrow">An example item</p><p>This is illustrative content, not a personal accomplishment.</p></div>}
         {entry.details.length > 0 && <dl class="entry-details">{entry.details.map((detail) => <div><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>}
         {entry.links.length > 0 && <div class="entry-links"><p class="eyebrow">Follow the links</p>{entry.links.map((link) => <a href={link.url} rel="noopener noreferrer">{link.label}<span aria-hidden="true">↗</span></a>)}</div>}
       </aside>}
     </div>
-    <footer class="entry-footer"><span>End of this page. There’s always another.</span><a href="/explore/">Keep exploring <span aria-hidden="true">→</span></a></footer>
+    <footer class="entry-footer"><span>There’s always another part of the story.</span><a href={ownerUrl}>{owner ? `More from ${owner.navigationLabel || owner.title}` : 'Browse pages'} <span aria-hidden="true">→</span></a></footer>
   </article>
 </BaseLayout>
 <style>

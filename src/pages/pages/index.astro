@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSite } from '../../lib/content';
+const site = getSite();
+const pages = site.pages.filter(page => page.published).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+---
+<BaseLayout title="Pages" description="A place for each part of the story. Browse the pages of this personal website." active="pages">
+  <section class="container pages-directory">
+    <header class="page-heading"><p class="eyebrow">The whole notebook</p><h1>Find your page<span class="directory-period">.</span></h1><p>Each part of the story has a place. Open a page to see what belongs there.</p></header>
+    {pages.length ? <><h2 class="sr-only">All published pages</h2><div class="page-directory-grid">{pages.map((page, index) => {
+      const count = page.items.filter(item => item.published).length;
+      return <article class="page-directory-card"><div class="page-card-meta"><span>{String(index + 1).padStart(2, '0')}</span>{page.example && <span class="page-example-label">Example</span>}</div><h3><a href={`/pages/${page.slug}/`}>{page.navigationLabel || page.title}<span aria-hidden="true">↗</span></a></h3>{page.summary && <p>{page.summary}</p>}<span class="page-card-count">{count ? `${count} ${count === 1 ? 'item' : 'items'}` : 'Open page'}</span></article>;
+    })}</div></> : <div class="empty-state"><h2>The first page is still to come.</h2><p>Published pages will appear here.</p></div>}
+  </section>
+</BaseLayout>
+<style>.pages-directory{padding-bottom:5rem}.directory-period{color:var(--accent)}</style>

@@ -3,9 +3,15 @@ media:
     label: Images
     input: public/images
     output: /images
-    extensions: [jpg, jpeg, png, webp, gif, avif, svg]
+    extensions:
+      - jpg
+      - jpeg
+      - png
+      - webp
+      - gif
+      - avif
+      - svg
     rename: safe
-
 components:
   record-id:
     type: uuid
@@ -21,7 +27,7 @@ components:
     description: Lowercase words separated by hyphens. Keep this unchanged after sharing a link.
     pattern:
       regex: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-      message: Use lowercase letters, numbers, and single hyphens between words.
+      message: 'Use lowercase letters, numbers, and single hyphens between words.'
   link:
     type: object
     fields:
@@ -31,7 +37,7 @@ components:
       - name: url
         type: string
         required: true
-        description: A full https:// address or a path beginning with /.
+        description: 'A full https:// address or a path beginning with /.'
   menu-home:
     label: Home link
     type: object
@@ -45,21 +51,8 @@ components:
       - name: visible
         type: boolean
         default: true
-  menu-explore:
-    label: Explore link
-    type: object
-    fields:
-      - name: id
-        component: record-id
-      - name: label
-        type: string
-        required: true
-        default: Explore
-      - name: visible
-        type: boolean
-        default: true
   menu-page:
-    label: Page link
+    label: Page menu override
     type: object
     fields:
       - name: id
@@ -67,6 +60,8 @@ components:
       - name: label
         type: string
         required: true
+        label: Fallback menu label
+        description: Used only when the page has no short menu label of its own.
       - name: target
         label: Page
         type: reference
@@ -78,26 +73,7 @@ components:
       - name: visible
         type: boolean
         default: true
-  menu-category:
-    label: Category link
-    type: object
-    fields:
-      - name: id
-        component: record-id
-      - name: label
-        type: string
-        required: true
-      - name: target
-        label: Category
-        type: reference
-        required: true
-        options:
-          collection: categories
-          value: '{fields.id}'
-          label: '{fields.title}'
-      - name: visible
-        type: boolean
-        default: true
+    description: Optional existing-page label or visibility override. Page ordering is controlled in the page form.
   menu-cv:
     label: CV link
     type: object
@@ -124,55 +100,46 @@ components:
         label: Destination URL
         type: string
         required: true
-        description: A complete https:// address.
+        description: 'A complete https:// address.'
       - name: visible
         type: boolean
         default: true
-
-content:
-  - name: entries
-    label: Entries
-    type: collection
-    path: content/entries
-    format: yaml-frontmatter
-    filename: '{fields.slug}.md'
-    view:
-      primary: title
+  page-item:
+    type: object
     fields:
       - name: id
         component: record-id
       - name: title
-        label: Title
+        label: Item title
         type: string
         required: true
       - name: slug
         component: slug
+        label: Custom item URL name
+        required: false
+        description: >-
+          Optional. Leave blank for a stable automatic address. A custom value must be unique across all pages
+          and use lowercase words separated by hyphens.
+        pattern:
+          regex: '^$|^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          message: 'Leave blank or use lowercase letters, numbers, and single hyphens between words.'
       - name: summary
         label: Short description
         type: text
-        required: true
+        required: false
+        description: Optional. A skill or hobby can be just a title; add detail when it helps.
       - name: published
-        label: Publish on the website
+        label: Publish this item
         type: boolean
         default: false
-        description: Drafts stay off the website, but their files are still readable in the public repository.
+        description: The parent page must also be published. Draft files are still readable in the public repository.
       - name: example
         label: This is example content
         type: boolean
         default: false
-        description: Examples receive a visible label and are excluded from the real default CV.
-      - name: featured
-        label: Feature on the homepage
-        type: boolean
-        default: false
-      - name: categories
-        label: Categories
-        type: reference
-        options:
-          collection: categories
-          multiple: true
-          value: '{fields.id}'
-          label: '{fields.title}'
+        description: >-
+          Examples are labeled and excluded from the real CV. A page marked as example also marks all of its
+          items as examples.
       - name: tags
         label: Tags
         type: string
@@ -180,7 +147,7 @@ content:
       - name: date
         label: Publication or start date
         type: string
-        description: Optional. Use YYYY-MM-DD, for example 2026-10-29.
+        description: 'Optional. Use YYYY-MM-DD, for example 2026-10-29.'
         pattern: '^$|^\d{4}-\d{2}-\d{2}$'
       - name: endDate
         label: End date
@@ -213,7 +180,7 @@ content:
         label: Additional details
         type: object
         list: true
-        description: Add any labeled information, such as a role, location, organization, or equipment type.
+        description: 'Add any labeled information, such as a role, location, organization, or equipment type.'
         fields:
           - name: label
             type: string
@@ -226,19 +193,20 @@ content:
         component: link
         list: true
       - name: body
-        label: Full story
+        label: Details
         type: rich-text
         options:
           format: markdown
           media: images
           switcher: true
+        description: 'Optional longer text, pictures, code, or a full story for this item.'
       - name: cv
         label: CV version
         type: object
-        description: A short presentation for the CV builder, independent of the public categories.
+        description: Optional concise CV presentation. The page title and layout do not determine the CV section.
         fields:
           - name: include
-            label: Offer this entry in the CV builder
+            label: Offer this item in the CV builder
             type: boolean
             default: false
           - name: section
@@ -251,9 +219,9 @@ content:
           - name: title
             label: CV title
             type: string
-            description: Leave blank to use the entry title.
+            description: Leave blank to use the item title.
           - name: subtitle
-            label: Role, organization, or subtitle
+            label: 'Role, organization, or subtitle'
             type: string
           - name: date
             label: CV date or date range
@@ -267,32 +235,7 @@ content:
             label: Default position within its section
             type: number
             default: 0
-
-  - name: categories
-    label: Categories
-    type: collection
-    path: content/categories
-    format: json
-    filename: '{fields.slug}.json'
-    view:
-      primary: title
-    fields:
-      - name: id
-        component: record-id
-      - name: title
-        label: Category name
-        type: string
-        required: true
-      - name: slug
-        component: slug
-      - name: description
-        label: Introduction
-        type: text
-      - name: order
-        label: Position in category lists
-        type: number
-        default: 0
-
+content:
   - name: pages
     label: Pages
     type: collection
@@ -301,11 +244,23 @@ content:
     filename: '{fields.slug}.md'
     view:
       primary: title
+      fields:
+        - title
+        - navigationLabel
+        - layout
+        - published
+        - order
+      sort:
+        - order
+        - title
+      default:
+        sort: order
+        order: asc
     fields:
       - name: id
         component: record-id
       - name: title
-        label: Page heading
+        label: Page name
         type: string
         required: true
       - name: slug
@@ -321,15 +276,52 @@ content:
         label: This is example content
         type: boolean
         default: false
+        description: 'Marks the page and all of its items as examples, including in CV demos.'
+      - name: showInNavigation
+        label: Show this page in the menu
+        type: boolean
+        default: true
+        description: Published pages appear automatically. No separate menu setup is needed.
+      - name: navigationLabel
+        label: Short menu label
+        type: string
+        description: Optional. Leave blank to use the page name.
+      - name: order
+        label: Page position
+        type: number
+        default: 0
+        description: Lower numbers come first in the menu and page lists.
+      - name: layout
+        label: How to display this page
+        type: select
+        default: cards
+        options:
+          values:
+            - name: cards
+              label: 'Cards — projects, adventures, collections'
+            - name: list
+              label: 'List — skills, hobbies, compact items'
+            - name: timeline
+              label: 'Timeline — experience, education, a journey'
+            - name: article
+              label: 'Article — About, an introduction, a standalone page'
       - name: body
-        label: Page content
+        label: Page introduction
         type: rich-text
         options:
           format: markdown
           media: images
-
+        description: Optional introduction. In Article layout this is the main page content.
+      - name: items
+        label: Items
+        component: page-item
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{fields.title}'
+        description: Add and edit the things that belong on this page. Their display order follows this list.
   - name: site
-    label: Profile, homepage & navigation
+    label: Profile & website settings
     type: file
     path: content/site.json
     format: json
@@ -379,33 +371,30 @@ content:
         label: Preview mode
         type: boolean
         default: true
-        description: Shows a starter notice and asks search engines not to index the site. Turn off after adding real content.
+        description: >-
+          Shows a starter notice and asks search engines not to index the site. Turn off after adding real
+          content.
       - name: navigation
-        label: Navigation menu
+        label: Optional extra navigation links
         type: block
         list: true
         blockKey: type
-        description: Add a destination, choose its label, then reorder the items. Categories are not added automatically.
+        description: >-
+          Normal pages appear automatically. Use this list for Home, CV, and external links. Existing-page
+          overrides affect fallback labels or visibility, not page order.
         blocks:
           - name: home
             label: Home
             component: menu-home
-          - name: explore
-            label: Explore everything
-            component: menu-explore
           - name: page
-            label: A page
+            label: Existing page override
             component: menu-page
-          - name: category
-            label: A category
-            component: menu-category
           - name: cv
             label: CV
             component: menu-cv
           - name: external
             label: External website
             component: menu-external
-
   - name: cv-sections
     label: CV sections
     type: collection

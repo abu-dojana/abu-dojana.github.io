@@ -2,9 +2,16 @@
 id: 40000000-0000-4000-8000-000000000001
 slug: about
 title: Room to keep becoming.
-summary: A personal introduction will live here. For now, this is a clearly labeled starting point.
+summary: >-
+  A personal introduction will live here. For now, this is a clearly labeled
+  starting point.
 published: true
 example: true
+layout: article
+order: 99
+showInNavigation: true
+navigationLabel: About
+items: []
 ---
 
 **This is a starter page. The personal introduction is still to come.**

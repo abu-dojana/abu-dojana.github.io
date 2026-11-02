@@ -1,23 +1,24 @@
 ---
-import type { Entry, Category } from '../lib/types';
+import type { Entry, Category, Page } from '../lib/types';
 import { formatDate } from '../lib/content';
-interface Props { entry: Entry; categories: Category[]; searchable?: boolean }
-const { entry, categories, searchable = false } = Astro.props;
-const topics = categories.filter((category) => entry.categories.includes(category.id));
-const searchText = [entry.title, entry.summary, entry.body, ...entry.tags, ...topics.map((topic) => topic.title), ...entry.details.map((detail) => detail.value)].join(' ');
+interface Props { entry: Entry; categories?: Category[]; pages?: Page[]; searchable?: boolean }
+const { entry, pages = [], searchable = false } = Astro.props;
+const owner = pages.find(page => page.id === entry.pageId && page.published);
+const hasBody = Boolean(entry.body.trim());
+const searchText = [entry.title, entry.summary, entry.body, ...entry.tags, owner?.title || '', ...entry.details.map((detail) => detail.value)].join(' ');
 ---
 <article class="entry-card" data-entry-card={searchable ? '' : undefined} data-search={searchable ? searchText : undefined} data-categories={searchable ? JSON.stringify(entry.categories) : undefined} data-tags={searchable ? JSON.stringify(entry.tags) : undefined}>
   {entry.cover && <a class="entry-card__image" href={`/entries/${entry.slug}/`} tabindex="-1" aria-hidden="true"><img src={entry.cover} alt={entry.coverAlt || ''} loading="lazy" width="1200" height="800" /></a>}
   <div class="entry-card__body">
     <div class="entry-card__meta">
-      {topics.slice(0, 2).map((topic) => <a href={`/categories/${topic.slug}/`}>{topic.title}</a>)}
+      {owner && <a href={`/pages/${owner.slug}/`}>{owner.navigationLabel || owner.title}</a>}
       {entry.example && <span class="example-label">Example</span>}
     </div>
     <h3><a href={`/entries/${entry.slug}/`}>{entry.title}<span class="entry-card__arrow" aria-hidden="true">↗</span></a></h3>
-    <p>{entry.summary}</p>
+    {entry.summary && <p>{entry.summary}</p>}
     <div class="entry-card__footer">
-      {entry.date ? <span>{formatDate(entry.date)}</span> : <span>A page from the notebook</span>}
-      <span>{entry.readingMinutes} min read</span>
+      {entry.date ? <span>{formatDate(entry.date)}</span> : <span>{owner ? `From ${owner.navigationLabel || owner.title}` : 'From the notebook'}</span>}
+      {hasBody && <span>{entry.readingMinutes} min read</span>}
     </div>
   </div>
 </article>

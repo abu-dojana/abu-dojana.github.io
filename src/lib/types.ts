@@ -13,6 +13,7 @@ export interface Settings {
 export interface Category { id: string; slug: string; title: string; description: string; order: number }
 export interface CvSection { id: string; title: string; order: number }
 export interface Entry {
+  pageId?: string;
   id: string; slug: string; title: string; summary: string;
   categories: string[]; tags: string[]; published: boolean; example: boolean;
   featured: boolean; date: string; endDate: string; cover: string; coverAlt: string;
@@ -21,5 +22,10 @@ export interface Entry {
   cv: { include: boolean; section: string; title: string; subtitle: string; date: string; bullets: string[]; order: number };
   body: string; html: string; readingMinutes: number;
 }
-export interface Page { id: string; slug: string; title: string; summary: string; published: boolean; example: boolean; body: string; html: string }
+export interface Page {
+  id: string; slug: string; title: string; summary: string;
+  published: boolean; example: boolean; body: string; html: string;
+  showInNavigation: boolean; navigationLabel: string; order: number;
+  layout: 'cards' | 'list' | 'timeline' | 'article'; items: Entry[];
+}
 export interface SiteContent { settings: Settings; categories: Category[]; entries: Entry[]; pages: Page[]; cvSections: CvSection[] }

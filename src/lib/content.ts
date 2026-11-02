@@ -7,11 +7,13 @@ import { z } from 'zod';
 import type { SiteContent, NavItem, Settings, Entry, Category, Page, CvSection } from './types';
 
 const text = () => z.preprocess(v => v == null ? '' : v, z.string().trim().default(''));
+const markdownBody = z.preprocess(v => v == null ? '' : v, z.string().default(''));
 const list = <T extends z.ZodType>(schema: T) => z.preprocess(v => v == null ? [] : v, z.array(schema).default([]));
 const order = z.preprocess(v => v == null || v === '' ? 0 : v, z.number().default(0));
 const boolean = (fallback: boolean) => z.preprocess(v => v == null ? fallback : v, z.boolean().default(fallback));
 const id = z.uuid();
-const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase words separated by hyphens');
+const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const slug = z.string().regex(slugPattern, 'Use lowercase words separated by hyphens');
 const url = text().refine(v => !v || (/^\/(?!\/)/.test(v) || /^https?:\/\//i.test(v) || /^mailto:/i.test(v)), 'Use an https:// link or a /local/path');
 const link = z.object({ label: z.string().min(1), url });
 const validDate = (value: string) => {
@@ -38,7 +40,16 @@ const entrySchema = z.object({
   progress: z.preprocess(v => v == null ? '' : v, z.enum(['', 'planned', 'in-progress', 'completed']).default('')),
   cv: z.preprocess(v => v == null ? {} : v, cvSchema),
 });
-const pageSchema = z.object({ id, slug, title: z.string().min(1), summary: text(), published: boolean(false), example: boolean(false) });
+const pageItemSchema = entrySchema.extend({
+  slug: text().refine(value => !value || slugPattern.test(value), 'Use lowercase words separated by hyphens'),
+  body: markdownBody,
+});
+const pageSchema = z.object({
+  id, slug, title: z.string().min(1), summary: text(), published: boolean(false), example: boolean(false),
+  showInNavigation: boolean(true), navigationLabel: text(), order,
+  layout: z.preprocess(v => v == null ? 'cards' : v, z.enum(['cards', 'list', 'timeline', 'article']).default('cards')),
+  items: list(pageItemSchema),
+});
 
 export function renderMarkdown(body: string): string {
   const html = marked.parse(body, { async: false });
@@ -75,7 +86,7 @@ export function validateSite(site: SiteContent): SiteContent {
   unique(site.settings.navigation, 'navigation');
   const categories = new Set(site.categories.map(c => c.id));
   const sections = new Set(site.cvSections.map(s => s.id));
-  const pages = new Set(site.pages.filter(p => p.published).map(p => p.id));
+  const pages = new Set(site.pages.map(p => p.id));
   for (const entry of site.entries) {
     for (const category of entry.categories) if (!categories.has(category)) throw new Error(`Entry "${entry.title}" refers to a missing category. Reassign it before deleting that category.`);
     if ((entry.cv.include || entry.cv.section) && !sections.has(entry.cv.section)) throw new Error(`Entry "${entry.title}" needs a valid CV section, or turn off CV inclusion and clear its section.`);
@@ -83,7 +94,7 @@ export function validateSite(site: SiteContent): SiteContent {
   }
   for (const item of site.settings.navigation.filter(n => n.visible)) {
     if (item.type === 'category' && !categories.has(item.target)) throw new Error(`Menu item "${item.label}" refers to a missing category.`);
-    if (item.type === 'page' && !pages.has(item.target)) throw new Error(`Menu item "${item.label}" needs a published page.`);
+    if (item.type === 'page' && !pages.has(item.target)) throw new Error(`Menu item "${item.label}" refers to a missing page.`);
     if (item.type === 'external' && !/^https?:\/\//i.test(item.target)) throw new Error(`Menu item "${item.label}" needs an https:// URL.`);
   }
   return site;
@@ -99,12 +110,38 @@ export function getSite(root = path.resolve('content')): SiteContent {
   }) as Entry[];
   const pages = files(path.join(root, 'pages'), '.md').map(f => {
     const record = parseFile(f, pageSchema, true);
-    return { ...record, html: renderMarkdown(record.body) };
+    const items = record.items.map(item => ({
+      ...item,
+      pageId: record.id,
+      slug: item.slug || `item-${item.id}`,
+      published: record.published && item.published,
+      example: record.example || item.example,
+      html: renderMarkdown(item.body),
+      readingMinutes: Math.max(1, Math.ceil(item.body.split(/\s+/).length / 220)),
+    }));
+    entries.push(...items);
+    return { ...record, items, html: renderMarkdown(record.body) };
   }) as Page[];
+  pages.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
   categories.sort((a, b) => a.order - b.order);
   cvSections.sort((a, b) => a.order - b.order);
   entries.sort((a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title));
   return validateSite({ settings, categories, entries, pages, cvSections });
+}
+
+/** A new published page appears in navigation without a second menu-editing step. */
+export function getNavigation(site: SiteContent): NavItem[] {
+  const overrides = new Map(site.settings.navigation.filter(item => item.type === 'page').map(item => [item.target, item]));
+  const pageLinks: NavItem[] = [...site.pages].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
+    .filter(page => page.published && page.showInNavigation && overrides.get(page.id)?.visible !== false)
+    .map(page => ({
+      id: `page-${page.id}`, type: 'page', target: page.id, visible: true,
+      label: page.navigationLabel || overrides.get(page.id)?.label || page.title,
+    }));
+  const core = site.settings.navigation.filter(item => item.visible && item.type !== 'page');
+  const cvIndex = core.findIndex(item => item.type === 'cv');
+  const index = cvIndex < 0 ? core.length : cvIndex;
+  return [...core.slice(0, index), ...pageLinks, ...core.slice(index)];
 }
 export function navHref(item: NavItem, site: SiteContent): string {
   if (item.type === 'home') return '/';
