@@ -40,22 +40,26 @@ items:
 
 
       🚀 SpaceTabs — The Fast, Private & Unlimited Tab & Workspace Manager  
-        
+
+
       Tired of tab overload slowing down your browser and devouring your
       computer's RAM? SpaceTabs brings order to your digital life with unlimited
       spaces, native tab suspension, and complete local privacy — 100% free with
       no paywalls or artificial limits.  
-        
+
+
       Whether you're researching, coding, studying, or managing client projects,
       SpaceTabs keeps your browser organized, responsive, and
       distraction-free.  
-        
+
+
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
 
       ✨ KEY HIGHLIGHTS  
 
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
-        
+
+
       📁 UNLIMITED SPACES & SECTIONS  
 
       • Organize tabs into dedicated spaces by project, topic, or client.  
@@ -65,7 +69,8 @@ items:
 
       • Switch between entire tab workspaces with a single click or open them in
       separate windows.  
-        
+
+
       ⚡ NATIVE MEMORY SAVER (SAVE UP TO 80% RAM)  
 
       • Automatically suspends inactive background tabs using Chromium's native
@@ -75,14 +80,16 @@ items:
 
       • Whitelist favorite domains (e.g., YouTube, music players, email) so they
       never sleep.  
-        
+
+
       🔒 100% LOCAL-FIRST & PRIVATE  
 
       • Your browsing data never leaves your machine — all spaces and tabs are
       stored locally in IndexedDB.  
 
       • Zero telemetry, zero analytics tracking, and zero data selling. Ever.  
-        
+
+
       ☁️ OPTIONAL GOOGLE DRIVE CLOUD SYNC  
 
       • Safely backup and synchronize your spaces across multiple computers.  
@@ -91,7 +98,8 @@ items:
       (SpaceTabs_Data).  
 
       • No proprietary servers or middleman databases.  
-        
+
+
       🎨 BEAUTIFUL & CUSTOMIZABLE WORKSPACE  
 
       • Independent dark and light modes: customize your sidebar and workspace
@@ -101,7 +109,8 @@ items:
 
       • Adjustable sidebar width and responsive layout for screens of any
       size.  
-        
+
+
       📝 INTEGRATED PRODUCTIVITY SUITE  
 
       Each space includes its own dedicated productivity tools:  
@@ -115,7 +124,8 @@ items:
       • Space Notes: Built-in markdown notes with checklists and formatting.  
 
       • Task Manager: Keep track of to-do items specific to each project.  
-        
+
+
       ⌨️ POWER-USER SHORTCUTS  
 
       • Press Alt+Shift+W to instantly focus or launch your SpaceTabs
