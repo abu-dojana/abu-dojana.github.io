@@ -266,7 +266,7 @@ describe('page lifecycle without code changes', () => {
     expect(after.entries).toEqual([]);
     expect(after.entries.filter((record) => record.published).map(entryUrl)).not.toContain('/entries/a-bowl/');
     expect(getNavigation(after).some((link) => link.type === 'page')).toBe(false);
-    expect(getNavigation(after).map((link) => navHref(link, after))).toEqual(['/']);
+    expect(getNavigation(after).map((link) => navHref(link, after))).toEqual(['/', '/pages/about/']);
     const staleOverride = after.settings.navigation.find((link) => link.type === 'page')!;
     expect(navHref(staleOverride, after)).toBe('/pages/');
     const model = createCvModel(after);
@@ -330,5 +330,45 @@ describe('page lifecycle without code changes', () => {
     expect(links[29].label).toBe('Field collection 1');
     expect(new Set(links.map((link) => navHref(link, site))).size).toBe(30);
     expect(links.every((link) => !navHref(link, site).includes('undefined'))).toBe(true);
+  });
+});
+
+describe('permanent About page', () => {
+  it('preserves editable content and items at a fixed address despite legacy publish and visibility settings', () => {
+    const fixtureRoot = makeFixture({ navigation: [
+      { id: ids.pageNav, label: 'Old About shortcut', type: 'page', target: '40000000-0000-4000-8000-000000000001', visible: false },
+    ] });
+    fs.writeFileSync(path.join(fixtureRoot, 'about.md'), `---\n${JSON.stringify({
+      title: 'In my own words', summary: 'An updated introduction.', navigationLabel: 'About me',
+      slug: 'accidental-change', published: false, showInNavigation: false,
+      items: [cvItem(ids.bowl, 'A personal milestone')],
+    })}\n---\n## What I enjoy\n\nA newly edited story.`);
+
+    const site = getSite(fixtureRoot);
+    expect(site.about).toMatchObject({ title: 'In my own words', slug: 'about', published: true, showInNavigation: true });
+    expect(site.about.html).toContain('<h2>What I enjoy</h2>');
+    expect(site.about.items[0].published).toBe(true);
+    expect(site.entries[0].pageId).toBe(site.about.id);
+    const links = getNavigation(site);
+    expect(links).toHaveLength(1);
+    expect(links[0].label).toBe('About me');
+    expect(navHref(links[0], site)).toBe('/pages/about/');
+    expect(createCvModel(site).sections[0].entries[0].id).toBe(ids.bowl);
+  });
+
+  it('keeps About available when every ordinary page is deleted or its own content file is absent', () => {
+    const fixtureRoot = makeFixture();
+    writePage(fixtureRoot, 'pottery', { id: ids.pottery, slug: 'pottery', title: 'Pottery', published: true });
+    fs.unlinkSync(path.join(fixtureRoot, 'pages', 'pottery.md'));
+    const site = getSite(fixtureRoot);
+    expect(site.pages).toEqual([]);
+    expect(site.about).toMatchObject({ title: 'About', slug: 'about', published: true });
+    expect(getNavigation(site).map(link => navHref(link, site))).toEqual(['/pages/about/']);
+  });
+
+  it('reports a conflicting ordinary About page before deployment can replace the permanent route', () => {
+    const fixtureRoot = makeFixture();
+    writePage(fixtureRoot, 'another-about', { id: ids.pottery, slug: 'about', title: 'A duplicate About', published: true });
+    expect(() => getSite(fixtureRoot)).toThrow(/dedicated About editor/);
   });
 });

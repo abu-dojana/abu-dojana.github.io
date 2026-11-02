@@ -1,0 +1,7 @@
+---
+import PageReader from '../../layouts/PageReader.astro';
+import { getSite } from '../../lib/content';
+
+const site = getSite();
+---
+<PageReader page={site.about} site={site} />

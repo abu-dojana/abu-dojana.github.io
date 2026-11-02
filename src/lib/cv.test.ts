@@ -26,6 +26,7 @@ function site(entries: Entry[] = [entry('a'), entry('b'), entry('c', {
       homeEyebrow: '', homeTitle: '', homeDescription: '', footerNote: '', preview: true, navigation: [],
     },
     categories: [], pages: [], entries,
+    about: { id: '40000000-0000-4000-8000-000000000001', slug: 'about', title: 'About', summary: '', published: true, example: false, body: '', html: '', showInNavigation: true, navigationLabel: 'About', order: 99, layout: 'article', items: [] },
     cvSections: [{ id: 'work', title: 'Selected work', order: 0 }, { id: 'learning', title: 'Learning', order: 1 }],
   };
 }

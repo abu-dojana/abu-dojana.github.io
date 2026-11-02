@@ -62,7 +62,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <div class="chrome-nav-band">
         <nav class="chrome-nav chrome-container" aria-label="Main navigation" data-responsive-navigation>
           <div class="chrome-nav-links" data-nav-links>
-            {navigation.map(item => <a class="chrome-nav-link" href={navHref(item, site)} data-nav-item={item.id} data-nav-pinned={item.type === 'home' || item.type === 'cv' ? 'true' : undefined} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}
+            {navigation.map(item => <a class="chrome-nav-link" href={navHref(item, site)} data-nav-item={item.id} data-nav-pinned={['home', 'about', 'cv'].includes(item.type) ? 'true' : undefined} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}
           </div>
           <details class="chrome-more" data-nav-more data-directory-current={Astro.url.pathname === '/pages/' ? 'true' : undefined} data-current={Astro.url.pathname === '/pages/' ? 'true' : undefined}>
             <summary aria-label="More pages">More <svg aria-hidden="true" viewBox="0 0 12 12"><path d="m2 4 4 4 4-4"/></svg></summary>

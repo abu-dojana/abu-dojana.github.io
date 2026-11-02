@@ -9,6 +9,7 @@ function fixture(): SiteContent {
   return {
     settings: { siteTitle: 'Test', name: '', headline: '', bio: '', email: '', location: '', links: [], skills: [], homeEyebrow: '', homeTitle: '', homeDescription: '', footerNote: '', preview: true, navigation: [] },
     categories: [], pages: [], cvSections: [],
+    about: { id: '40000000-0000-4000-8000-000000000001', slug: 'about', title: 'About', summary: '', published: true, example: false, body: '', html: '', showInNavigation: true, navigationLabel: 'About', order: 99, layout: 'article', items: [] },
     entries: [{ id: 'b92998cb-b934-4cde-a62c-7dbbfb8d90ca', slug: 'test-entry', title: 'Test entry', summary: '', categories: [], tags: [], published: true, example: false, featured: false, date: '', endDate: '', cover: '', coverAlt: '', links: [], details: [], progress: '', cv: { include: false, section: '', title: '', subtitle: '', date: '', bullets: [], order: 0 }, body: '', html: '', readingMinutes: 1 }],
   };
 }

@@ -22,7 +22,7 @@ const validDate = (value: string) => {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 };
 const date = z.preprocess(v => v instanceof Date ? v.toISOString().slice(0, 10) : (v ?? ''), z.string().default('').refine(v => !v || validDate(v), 'Use a real calendar date in YYYY-MM-DD format'));
-const navSchema = z.object({ id, label: z.string().min(1), type: z.enum(['home', 'explore', 'page', 'category', 'cv', 'external']), target: text(), visible: boolean(true) });
+const navSchema = z.object({ id, label: z.string().min(1), type: z.enum(['home', 'explore', 'page', 'category', 'about', 'cv', 'external']), target: text(), visible: boolean(true) });
 const settingsSchema = z.object({
   siteTitle: z.string().min(1), name: text(), headline: text(), bio: text(), email: text(), location: text(),
   links: list(link), skills: list(text()),
@@ -50,6 +50,21 @@ const pageSchema = z.object({
   layout: z.preprocess(v => v == null ? 'cards' : v, z.enum(['cards', 'list', 'timeline', 'article']).default('cards')),
   items: list(pageItemSchema),
 });
+const aboutSchema = pageSchema.pick({ title: true, summary: true, example: true, navigationLabel: true, items: true });
+const aboutId = '40000000-0000-4000-8000-000000000001';
+
+function materializePage(record: z.infer<typeof pageSchema> & { body: string }): Page {
+  const items = record.items.map(item => ({
+    ...item,
+    pageId: record.id,
+    slug: item.slug || `item-${item.id}`,
+    published: record.published && item.published,
+    example: record.example || item.example,
+    html: renderMarkdown(item.body),
+    readingMinutes: Math.max(1, Math.ceil(item.body.split(/\s+/).length / 220)),
+  }));
+  return { ...record, items, html: renderMarkdown(record.body) };
+}
 
 export function renderMarkdown(body: string): string {
   const html = marked.parse(body, { async: false });
@@ -82,7 +97,10 @@ function unique(items: { id: string; slug?: string }[], label: string) {
   }
 }
 export function validateSite(site: SiteContent): SiteContent {
-  for (const [label, items] of Object.entries({ entries: site.entries, categories: site.categories, pages: site.pages, cvSections: site.cvSections })) unique(items, label);
+  if (site.pages.some(page => page.slug === 'about' || page.id === aboutId)) {
+    throw new Error('About is a permanent page. Edit it in the dedicated About editor, and choose another URL name for ordinary pages.');
+  }
+  for (const [label, items] of Object.entries({ entries: site.entries, categories: site.categories, pages: [site.about, ...site.pages], cvSections: site.cvSections })) unique(items, label);
   unique(site.settings.navigation, 'navigation');
   const categories = new Set(site.categories.map(c => c.id));
   const sections = new Set(site.cvSections.map(s => s.id));
@@ -108,25 +126,21 @@ export function getSite(root = path.resolve('content')): SiteContent {
     const record = parseFile(f, entrySchema, true);
     return { ...record, html: renderMarkdown(record.body), readingMinutes: Math.max(1, Math.ceil(record.body.split(/\s+/).length / 220)) };
   }) as Entry[];
-  const pages = files(path.join(root, 'pages'), '.md').map(f => {
-    const record = parseFile(f, pageSchema, true);
-    const items = record.items.map(item => ({
-      ...item,
-      pageId: record.id,
-      slug: item.slug || `item-${item.id}`,
-      published: record.published && item.published,
-      example: record.example || item.example,
-      html: renderMarkdown(item.body),
-      readingMinutes: Math.max(1, Math.ceil(item.body.split(/\s+/).length / 220)),
-    }));
-    entries.push(...items);
-    return { ...record, items, html: renderMarkdown(record.body) };
-  }) as Page[];
+  const pages = files(path.join(root, 'pages'), '.md').map(f => materializePage(parseFile(f, pageSchema, true)));
+  const aboutFile = path.join(root, 'about.md');
+  const aboutRecord = fs.existsSync(aboutFile)
+    ? parseFile(aboutFile, aboutSchema, true)
+    : { ...aboutSchema.parse({ title: 'About' }), body: '' };
+  const about = materializePage({
+    ...aboutRecord, id: aboutId, slug: 'about', published: true, showInNavigation: true,
+    navigationLabel: aboutRecord.navigationLabel || 'About', order: 99, layout: 'article',
+  });
+  entries.push(...[...pages, about].flatMap(page => page.items));
   pages.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
   categories.sort((a, b) => a.order - b.order);
   cvSections.sort((a, b) => a.order - b.order);
   entries.sort((a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title));
-  return validateSite({ settings, categories, entries, pages, cvSections });
+  return validateSite({ settings, categories, entries, pages, about, cvSections });
 }
 
 /** A new published page appears in navigation without a second menu-editing step. */
@@ -138,16 +152,19 @@ export function getNavigation(site: SiteContent): NavItem[] {
       id: `page-${page.id}`, type: 'page', target: page.id, visible: true,
       label: page.navigationLabel || overrides.get(page.id)?.label || page.title,
     }));
-  const core = site.settings.navigation.filter(item => item.visible && item.type !== 'page');
+  const core = site.settings.navigation.filter(item => item.visible && item.type !== 'page' && item.type !== 'about');
   const cvIndex = core.findIndex(item => item.type === 'cv');
   const index = cvIndex < 0 ? core.length : cvIndex;
-  return [...core.slice(0, index), ...pageLinks, ...core.slice(index)];
+  const aboutLink: NavItem = { id: 'permanent-about', type: 'about', target: site.about.id, label: site.about.navigationLabel || 'About', visible: true };
+  return [...core.slice(0, index), ...pageLinks, aboutLink, ...core.slice(index)];
 }
 export function navHref(item: NavItem, site: SiteContent): string {
   if (item.type === 'home') return '/';
   if (item.type === 'explore') return '/explore/';
   if (item.type === 'cv') return '/cv/';
+  if (item.type === 'about') return '/pages/about/';
   if (item.type === 'page') {
+    if (item.target === site.about.id) return '/pages/about/';
     const page = site.pages.find(p => p.id === item.target && p.published);
     return page ? `/pages/${page.slug}/` : '/pages/';
   }

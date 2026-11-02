@@ -6,14 +6,14 @@
 
 The normal workflow is **Pages → choose or create a page → Items → Add item → Save**. Make a page for Projects, Skills, Experiences, Adventures, Blogs, Research, Education, Hobbies, or any other subject. Every page owns its items. You do not need to create a category, a separate entry, or a menu record first.
 
-There is no fixed subject list or page-count limit in the site. You can create, rename, unpublish, or delete pages in the dashboard. Published menu links appear automatically, with additional links under **More** when needed.
+There is no fixed subject list or page-count limit in the site. You can create, rename, unpublish, or delete ordinary pages in the dashboard. Published menu links appear automatically, with additional links under **More** when needed. **Home, About, and CV are permanent sections.** Their content remains editable, while deleting an ordinary page cannot remove them.
 
 ## Open the dashboard
 
 1. Use **Log in** on the website to open the Pages CMS owner dashboard, or open the dashboard link above.
 2. Sign in with the existing GitHub account that owns `abu-dojana/abu-dojana.github.io`.
 3. Open the repository and choose **main**, the live publishing branch.
-4. The sidebar shows **Pages**, **Profile & website settings**, **CV sections**, and images.
+4. The sidebar shows **About**, **Pages**, **Profile & website settings**, **CV sections**, and images.
 
 Log in is for owner editing. Visitors can read the website and use its CV builder without an account or signup. A successful dashboard save creates a GitHub commit; a successful publishing workflow then updates the website. Those are separate steps.
 
@@ -32,6 +32,14 @@ Open **Pages → New page** (the dashboard may label this **New entry** within t
 Published pages with the menu option enabled appear automatically. Their names, menu labels, and positions are editable in the same form. The menu label can differ from the page heading. Additional menu links appear under **More**; they are not dropped when the list grows.
 
 The address is `/pages/its-url-name/`. Keep the URL name unchanged after sharing a link; changing it changes the address.
+
+## Edit About
+
+Open **About** directly in the dashboard sidebar. It is separate from the ordinary Pages collection.
+
+Edit the page heading, short introduction, formatted **About you** text, pictures, and optional Items, then save. Its short menu label defaults to **About** and can be changed without changing its address. The page stays at `/pages/about/` and is always published with a menu link; it has no delete, unpublish, or hide controls in the editor.
+
+The starter is titled **Room to keep becoming.** Replace the example text with your own introduction and turn off **This is example content** when ready. Optional About items use the same editing and CV fields as items on ordinary pages.
 
 ## Read a page
 
@@ -72,7 +80,7 @@ Hiding a link does not make its destination private. Deleting content does not e
 
 Under **Profile & website settings**, enter your website name, CV name, headline, short introduction, and any public contact/profile links. Optional fields can stay blank; LinkedIn is optional.
 
-Edit the homepage heading, introduction, and footer in the same form. Change page ordering through each page's **Page position** field. Open your About page under **Pages** to edit its introduction and optional items. The starter About page is titled **Room to keep becoming.** and has **About** as its short menu label.
+Edit the homepage heading, introduction, and footer in the same form. Change ordinary page ordering through each page's **Page position** field. Edit the permanent About section through **About** in the dashboard sidebar.
 
 Example items are visibly labeled and excluded from your real default CV. Replace their text with your actual work before turning off **This is example content**. If a whole page is marked as an example, all its items are treated as examples too, regardless of each item's setting.
 
@@ -82,7 +90,7 @@ Example items are visibly labeled and excluded from your real default CV. Replac
 
 Ordinary pages need no separate menu setup. Their menu visibility, label, and position fields are the primary controls.
 
-Use **Optional extra navigation links** for Home, CV, and external websites. It is not required when creating a normal page.
+Use **Optional extra navigation links** for Home, CV, and external websites. It is not required when creating a normal page. About's permanent link is edited in the About form rather than this list.
 
 An existing-page override, if present, can supply a fallback menu label or hide that page's link. It does not create a second link or change the page's position. A page's own short menu label takes precedence; use its **Page position** field to set order. If the destination is deleted or unpublished, its shortcut is not shown. Leftover deleted-page overrides do not block publishing and can be removed from settings whenever convenient.
 

@@ -4,6 +4,8 @@ A flexible personal website with a hosted Pages CMS editor, light/dark themes, a
 
 The editor is **page-first**: open **Pages → choose or create a page → Items → Add item**. Create any subject page and manage its contents in that form. There is no fixed subject list or page-count limit in the site, and normal pages need no separate category, entry, or menu setup.
 
+**Home, About, and CV are permanent sections.** About has its own dashboard form; ordinary subject pages remain freely editable, publishable, and deletable.
+
 ## Edit in your browser
 
 - Dashboard: <https://app.pagescms.org/>
@@ -11,7 +13,7 @@ The editor is **page-first**: open **Pages → choose or create a page → Items
 - Website: <https://abu-dojana.github.io/>
 - Example CV builder: <https://abu-dojana.github.io/cv/build/?demo=1>
 
-Use the website's **Log in** link to open the Pages CMS owner dashboard, sign in with the repository owner's existing GitHub account, and select **main**. The sidebar exposes Pages, Profile & website settings, CV sections, and images. Visitors do not need an account or signup. See [EDITING.md](EDITING.md) for the complete editing guide, publishing checks, and recovery.
+Use the website's **Log in** link to open the Pages CMS owner dashboard, sign in with the repository owner's existing GitHub account, and select **main**. The sidebar exposes About, Pages, Profile & website settings, CV sections, and images. Visitors do not need an account or signup. See [EDITING.md](EDITING.md) for the complete editing guide, publishing checks, and recovery.
 
 Pages share a reader with a left-hand item list and a central detail area. The top navigation opens each page's overview; selecting a child item opens its details in that same reader. Additional top-level links appear under **More** when needed. Publishing, menu visibility, labels, and order are editable. Items live inside their parent page and can be as simple as a skill title or as detailed as a project write-up. Optional CV presentation is edited on that same item.
 
@@ -37,6 +39,7 @@ npm run build
 ## Content structure
 
 - `content/pages/`: Markdown pages containing metadata, an optional introduction, and nested items. This is the primary subject collection.
+- `content/about.md`: permanent About section with editable introduction and optional items; its existing `/pages/about/` address stays fixed.
 - `content/site.json`: public profile, homepage copy, preview mode, and optional extra navigation.
 - `content/cv-sections/`: editable CV headings and default ordering.
 - `.pages.yml`: hosted-editor forms, including collapsed item editors inside Pages.

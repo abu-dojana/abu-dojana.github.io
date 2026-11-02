@@ -10,7 +10,7 @@ export function getStaticPaths() {
   return site.entries.filter(entry => entry.published).map(entry => ({ params: { slug: entry.slug }, props: { entry, site } }));
 }
 const { entry, site } = Astro.props as { entry: Entry; site: SiteContent };
-const owner = site.pages.find(page => page.published && (page.id === entry.pageId || page.items.some(item => item.id === entry.id)));
+const owner = [site.about, ...site.pages].find(page => page.published && (page.id === entry.pageId || page.items.some(item => item.id === entry.id)));
 const progressLabels = { planned: 'Planned', 'in-progress': 'In progress', completed: 'Completed', '': '' };
 const date = entry.date ? `${formatDate(entry.date)}${entry.endDate ? ` — ${formatDate(entry.endDate)}` : ''}` : entry.endDate ? `Until ${formatDate(entry.endDate)}` : '';
 ---

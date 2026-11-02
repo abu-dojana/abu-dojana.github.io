@@ -1,7 +1,7 @@
 export interface Link { label: string; url: string }
 export interface NavItem {
   id: string; label: string;
-  type: 'home' | 'explore' | 'page' | 'category' | 'cv' | 'external';
+  type: 'home' | 'explore' | 'page' | 'category' | 'about' | 'cv' | 'external';
   target: string; visible: boolean;
 }
 export interface Settings {
@@ -28,4 +28,4 @@ export interface Page {
   showInNavigation: boolean; navigationLabel: string; order: number;
   layout: 'cards' | 'list' | 'timeline' | 'article'; items: Entry[];
 }
-export interface SiteContent { settings: Settings; categories: Category[]; entries: Entry[]; pages: Page[]; cvSections: CvSection[] }
+export interface SiteContent { settings: Settings; categories: Category[]; entries: Entry[]; pages: Page[]; about: Page; cvSections: CvSection[] }

@@ -5,11 +5,7 @@ title: Room to keep becoming.
 summary: >-
   A personal introduction will live here. For now, this is a clearly labeled
   starting point.
-published: true
 example: true
-layout: article
-order: 99
-showInNavigation: true
 navigationLabel: About
 items: []
 ---

@@ -26,6 +26,11 @@ describe('navigation overflow measured by available space', () => {
     expect(fitNavigationItems(items, 0, 8).visible).toEqual([]);
   });
 
+  it('keeps the permanent About link beside Home and CV when custom pages overflow', () => {
+    const withAbout = [...items.slice(0, -1), { id: 'about', width: 65, pinned: true }, items[items.length - 1]];
+    expect(fitNavigationItems(withAbout, 200, 8)).toEqual({ visible: ['home', 'about', 'cv'], overflow: ['projects', 'adventures'] });
+  });
+
   it('recomputes responsive membership and rounds fractional widths conservatively', () => {
     expect(fitNavigationItems([{ id: 'a', width: 50.2 }, { id: 'b', width: 50.2 }], 100.5, 0).visible).toEqual(['a']);
     expect(fitNavigationItems(items, 400, 8).overflow).toEqual([]);
@@ -45,5 +50,9 @@ describe('current navigation destination', () => {
   it('keeps CV active inside its builder and does not treat an external link as current', () => {
     expect(isCurrentNavigationItem({ type: 'cv', target: '' }, '/cv/', '/cv/build/', 'cv')).toBe(true);
     expect(isCurrentNavigationItem({ type: 'external', target: '' }, 'https://example.com/', '/')).toBe(false);
+  });
+
+  it('keeps About active when reading one of its optional items', () => {
+    expect(isCurrentNavigationItem({ type: 'about', target: 'about-id' }, '/pages/about/', '/entries/a-milestone/', 'about-id')).toBe(true);
   });
 });

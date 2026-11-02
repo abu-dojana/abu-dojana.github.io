@@ -236,6 +236,47 @@ components:
             type: number
             default: 0
 content:
+  - name: about
+    label: About
+    type: file
+    path: content/about.md
+    format: yaml-frontmatter
+    operations:
+      rename: false
+      delete: false
+    fields:
+      - name: title
+        label: Page heading
+        type: string
+        required: true
+      - name: summary
+        label: Short introduction
+        type: text
+      - name: navigationLabel
+        label: Short menu label
+        type: string
+        default: About
+        description: Optional. Leave blank to use About. The page and its menu link are permanent.
+      - name: example
+        label: This is example content
+        type: boolean
+        default: false
+        description: Marks this introduction and any items as examples. Turn off after replacing the starter with your own content.
+      - name: body
+        label: About you
+        type: rich-text
+        options:
+          format: markdown
+          media: images
+        description: Your introduction, pictures, and anything else you want visitors to know about you.
+      - name: items
+        label: Items
+        component: page-item
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{fields.title}'
+        description: Optional additional items shown in About's left-hand list. About itself is always published; each item has its own publishing switch.
   - name: pages
     label: Pages
     type: collection
@@ -367,6 +408,7 @@ content:
         description: >-
           Normal pages appear automatically. Use this list for Home, CV, and external links. Existing-page
           overrides affect fallback labels or visibility, not page order. Overrides for deleted pages are ignored.
+          About has its own permanent link, edited in the About form.
         blocks:
           - name: home
             label: Home

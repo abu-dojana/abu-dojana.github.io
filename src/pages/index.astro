@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getSite } from '../lib/content';
-const { settings, pages: allPages } = getSite();
+const site = getSite();
+const { settings } = site;
+const allPages = [...site.pages, site.about];
 const pages = allPages.filter(page => page.published).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 const firstPage = pages.find(page => page.items.some(item => item.published)) || pages[0];
 const initials = settings.siteTitle.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('');

@@ -14,7 +14,7 @@ export function fitNavigationItems(items: MeasuredNavigationItem[], availableWid
   const visible = new Set<string>();
   let used = 0;
 
-  // Home and CV are useful anchors; subjects still keep the editor's ordering.
+  // Permanent pages are useful anchors; subjects still keep the editor's ordering.
   for (const item of [...items.filter(item => item.pinned), ...items.filter(item => !item.pinned)]) {
     const width = Number.isFinite(item.width) ? Math.max(0, Math.ceil(item.width)) : available + 1;
     const next = used + (visible.size ? spacing : 0) + width;
@@ -38,6 +38,6 @@ export function isCurrentNavigationItem(
 ): boolean {
   const normalized = (path: string) => path.replace(/\/+$/, '') || '/';
   if (href.startsWith('/') && normalized(href) === normalized(pathname)) return true;
-  if (item.type === 'page') return Boolean(active && active === item.target);
+  if (item.type === 'page' || item.type === 'about') return Boolean(active && active === item.target);
   return item.type === 'cv' && active === 'cv';
 }
