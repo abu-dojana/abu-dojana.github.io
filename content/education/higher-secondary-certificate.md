@@ -1,5 +1,5 @@
 ---
-degree: Higher Secondary Certificate
+degree: Higher Secondary Certificate (HSC)
 institution: Motijheel High School and College
 field: Science
 location: Motijheel, Dhaka
