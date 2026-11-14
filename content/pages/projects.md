@@ -147,4 +147,3 @@ items:
           inventing metrics."
       order: 1
 ---
-this is a [page instro
