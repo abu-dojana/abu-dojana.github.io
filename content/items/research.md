@@ -21,7 +21,7 @@ summary: >-
   identification in upcoming HCI systems.
 date: 2026-11-14
 endDate: 2026-11-14
-showOnCv: false
+showOnCv: true
 order: 0
 published: true
 ---
