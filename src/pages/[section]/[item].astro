@@ -1,0 +1,23 @@
+---
+import PageReader from '../../layouts/PageReader.astro';
+import { getSite } from '../../lib/content';
+import type { Section, SectionItem, SiteContent } from '../../lib/types';
+
+export function getStaticPaths() {
+  const site = getSite();
+  const sectionsBySlug = new Map(site.sections.filter(s => s.published).map(s => [s.slug, s]));
+  return site.allItems
+    .filter(item => item.published && sectionsBySlug.has(item.sectionSlug))
+    .map(item => ({
+      params: { section: item.sectionSlug, item: item.slug },
+      props: { section: sectionsBySlug.get(item.sectionSlug)!, item, site },
+    }));
+}
+
+const { section, item, site } = Astro.props as {
+  section: Section;
+  item: SectionItem;
+  site: SiteContent;
+};
+---
+<PageReader section={section} site={site} item={item} />

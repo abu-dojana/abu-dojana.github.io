@@ -14,7 +14,7 @@ export function fitNavigationItems(items: MeasuredNavigationItem[], availableWid
   const visible = new Set<string>();
   let used = 0;
 
-  // Permanent pages are useful anchors; subjects still keep the editor's ordering.
+  // Permanent anchors stay visible first; all visible items keep editor ordering.
   for (const item of [...items.filter(item => item.pinned), ...items.filter(item => !item.pinned)]) {
     const width = Number.isFinite(item.width) ? Math.max(0, Math.ceil(item.width)) : available + 1;
     const next = used + (visible.size ? spacing : 0) + width;
@@ -37,7 +37,20 @@ export function isCurrentNavigationItem(
   active = '',
 ): boolean {
   const normalized = (path: string) => path.replace(/\/+$/, '') || '/';
-  if (href.startsWith('/') && normalized(href) === normalized(pathname)) return true;
-  if (item.type === 'page' || item.type === 'about') return Boolean(active && active === item.target);
-  return item.type === 'cv' && active === 'cv';
+  const currentPath = normalized(pathname);
+  if (href.startsWith('/') && normalized(href) === currentPath) return true;
+  if (item.type === 'section') {
+    return Boolean(
+      (active && active === item.target) ||
+      (item.target && currentPath.startsWith(`/${item.target}/`)) ||
+      currentPath === `/${item.target}`,
+    );
+  }
+  if (item.type === 'about') {
+    return active === 'about' || currentPath === '/about' || currentPath.startsWith('/about/');
+  }
+  if (item.type === 'cv') {
+    return active === 'cv' || currentPath === '/cv' || currentPath.startsWith('/cv/');
+  }
+  return false;
 }

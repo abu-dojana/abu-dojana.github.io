@@ -1,21 +1,41 @@
 ---
 import { getSite, getNavigation, navHref } from '../lib/content';
 import { isCurrentNavigationItem } from '../lib/navigation';
-import { themes, defaultLightTheme, defaultDarkTheme, themeStorageKey } from '../lib/themes';
+import {
+  defaultDarkTheme,
+  defaultLightTheme,
+  legacyThemeStorageKey,
+  themeStorageKey,
+} from '../lib/themes';
 import { themeStyles } from '../lib/theme-styles';
 import ThemePicker from '../components/ThemePicker.astro';
 import '../styles/global.css';
 import '../styles/chrome.css';
-interface Props { title?: string; description?: string; active?: string; wide?: boolean }
+
+interface Props {
+  title?: string;
+  description?: string;
+  active?: string;
+  wide?: boolean;
+}
+
 const { title, description, active = '', wide = false } = Astro.props;
 const site = getSite();
 const { settings } = site;
-const navigation = getNavigation(site).filter(item => item.visible && item.type !== 'explore' && item.type !== 'category');
-const isCurrent = (item: typeof navigation[number]) => isCurrentNavigationItem(item, navHref(item, site), Astro.url.pathname, active);
-const brandInitial = Array.from(settings.siteTitle.trim())[0]?.toUpperCase() || 'A';
-const pageTitle = title ? `${title} · ${settings.siteTitle}` : `${settings.siteTitle} · An open notebook`;
-const pageDescription = description || settings.homeDescription || 'A personal collection of work, stories, experiences, and things worth remembering.';
+const navigation = getNavigation(site).filter(item => item.visible);
+const isCurrent = (item: typeof navigation[number]) =>
+  isCurrentNavigationItem(item, navHref(item), Astro.url.pathname, active);
+const brandName = settings.name || settings.siteTitle;
+const brandInitial = Array.from(brandName.trim())[0]?.toUpperCase() || 'A';
+const pageTitle = title
+  ? `${title} · ${settings.siteTitle}`
+  : settings.headline
+    ? `${settings.siteTitle} · ${settings.headline}`
+    : settings.siteTitle;
+const pageDescription =
+  description || settings.homeDescription || settings.bio || `${settings.siteTitle} — Portfolio`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const isDirectoryCurrent = Astro.url.pathname === '/sections/';
 ---
 <!doctype html>
 <html lang="en">
@@ -25,7 +45,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={pageDescription} />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f8f7f2" />
-    {settings.preview && <meta name="robots" content="noindex, nofollow" />}
+    {settings.noindex && <meta name="robots" content="noindex, nofollow" />}
     <title>{pageTitle}</title>
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -34,18 +54,22 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <style is:inline set:html={themeStyles} />
-    <script is:inline define:vars={{ themeIds: themes.map(theme => theme.id), themeStorageKey, defaultLightTheme, defaultDarkTheme }}>
+    <script
+      is:inline
+      define:vars={{ themeStorageKey, legacyThemeStorageKey, defaultLightTheme, defaultDarkTheme }}
+    >
       try {
-        let saved = localStorage.getItem(themeStorageKey);
-        if (saved === 'light') saved = defaultLightTheme;
-        if (saved === 'dark') saved = defaultDarkTheme;
-        if (themeIds.includes(saved)) document.documentElement.dataset.theme = saved;
+        var saved = localStorage.getItem(themeStorageKey);
+        if (saved === null) saved = localStorage.getItem(legacyThemeStorageKey);
+        if (saved === 'light' || (saved && saved.indexOf('light-') === 0)) saved = defaultLightTheme;
+        else if (saved === 'dark' || (saved && saved.indexOf('dark-') === 0)) saved = defaultDarkTheme;
+        else saved = '';
+        if (saved) document.documentElement.dataset.theme = saved;
       } catch {}
     </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    {settings.preview && <div class="preview-strip"><span class="preview-dot"></span> A work in progress <span class="preview-divider">/</span> Example content is labeled. Make this space your own.</div>}
     <header class="site-header chrome-header">
       <div class="chrome-topbar chrome-container">
         <a href="/" class="chrome-brand" aria-label={`${settings.siteTitle}, home`}>
@@ -54,38 +78,64 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         </a>
         <div class="chrome-actions">
           <ThemePicker />
-          <a href="https://app.pagescms.org/" class="chrome-login" title="Owner editor access" aria-label="Log in to the website editor">
-            <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="6.2" r="3"/><path d="M3.5 17v-1.3a6.5 6.5 0 0 1 13 0V17"/></svg>
-            Log in
-          </a>
         </div>
       </div>
       <div class="chrome-nav-band">
         <nav class="chrome-nav chrome-container" aria-label="Main navigation" data-responsive-navigation>
           <div class="chrome-nav-links" data-nav-links>
-            {navigation.map(item => <a class="chrome-nav-link" href={navHref(item, site)} data-nav-item={item.id} data-nav-pinned={['home', 'about', 'cv'].includes(item.type) ? 'true' : undefined} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>)}
+            {navigation.map(item => (
+              <a
+                class="chrome-nav-link"
+                href={navHref(item)}
+                target={item.type === 'external' ? '_blank' : undefined}
+                rel={item.type === 'external' ? 'noopener noreferrer' : undefined}
+                data-nav-item={item.id}
+                data-nav-pinned={['home', 'about', 'cv'].includes(item.type) ? 'true' : undefined}
+                aria-current={isCurrent(item) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            ))}
           </div>
-          <details class="chrome-more" data-nav-more data-directory-current={Astro.url.pathname === '/pages/' ? 'true' : undefined} data-current={Astro.url.pathname === '/pages/' ? 'true' : undefined}>
-            <summary aria-label="More pages">More <svg aria-hidden="true" viewBox="0 0 12 12"><path d="m2 4 4 4 4-4"/></svg></summary>
+          <details
+            class="chrome-more"
+            data-nav-more
+            data-directory-current={isDirectoryCurrent ? 'true' : undefined}
+            data-current={isDirectoryCurrent ? 'true' : undefined}
+          >
+            <summary aria-label="More sections">
+              More <svg aria-hidden="true" viewBox="0 0 12 12"><path d="m2 4 4 4 4-4"/></svg>
+            </summary>
             <div class="chrome-more-panel">
               <div data-nav-overflow hidden></div>
-              <a class="chrome-directory-link" href="/pages/" aria-current={Astro.url.pathname === '/pages/' ? 'page' : undefined}>All pages <span aria-hidden="true">↗</span></a>
+              <a
+                class="chrome-directory-link"
+                href="/sections/"
+                aria-current={isDirectoryCurrent ? 'page' : undefined}
+              >
+                All sections <span aria-hidden="true">↗</span>
+              </a>
             </div>
           </details>
         </nav>
       </div>
     </header>
-    <main id="main" class:list={[{ 'wide-page': wide }]}><slot /></main>
+    <main id="main" class:list={[{ 'wide-page': wide }]}>
+      <slot />
+    </main>
     <footer class="site-footer chrome-footer">
       <div class="chrome-footer-inner chrome-container">
         <div class="chrome-footer-copy">
-          <a href="/">© {new Date().getUTCFullYear()} {settings.siteTitle}</a>
+          <a href="/">© {new Date().getUTCFullYear()} {brandName}</a>
           {settings.footerNote && <p class="chrome-footer-note">{settings.footerNote}</p>}
         </div>
         <nav class="chrome-footer-links" aria-label="Footer navigation">
-          {settings.email && <a href={`mailto:${settings.email}`}>Contact</a>}
-          {settings.links.map(link => <a href={link.url}>{link.label}</a>)}
-          <a href="/pages/">All pages <span aria-hidden="true">↗</span></a>
+          {settings.email && <a href={`mailto:${settings.email}`}>Email</a>}
+          {settings.links.map(link => (
+            <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
+          ))}
+          <a href="/cv/">CV</a>
+          <a href="/sections/">All sections <span aria-hidden="true">↗</span></a>
         </nav>
       </div>
     </footer>

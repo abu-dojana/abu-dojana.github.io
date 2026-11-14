@@ -1,13 +1,41 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSite, getVisibleSections, sectionUrl } from '../lib/content';
+
+const site = getSite();
+const projectsSection = getVisibleSections(site).find(section => section.type === 'projects');
 ---
-<BaseLayout title="Page not found" description="This page is missing from the notebook.">
-  <section class="container not-found"><p class="eyebrow">A small wrong turn</p><p class="large-number" aria-hidden="true">404</p><h1>This page wandered off.</h1><p class="muted">The link may have changed, or this page hasn’t been written yet.<br />There are still plenty of other pages to open.</p><div class="not-found-actions"><a class="button" href="/pages/">Browse pages <span aria-hidden="true">↗</span></a><a class="button secondary" href="/">Back home</a></div></section>
+
+<BaseLayout title="Page not found" description="The requested page could not be found.">
+  <section class="container not-found">
+    <p class="eyebrow">404</p>
+    <p class="large-number" aria-hidden="true">404</p>
+    <h1>Page not found.</h1>
+    <p class="muted">
+      The page you are looking for doesn’t exist or has been moved.
+    </p>
+    <div class="not-found-actions">
+      <a class="button" href="/">Back home <span aria-hidden="true">→</span></a>
+      {projectsSection ? (
+        <a class="button secondary" href={sectionUrl(projectsSection)}>View projects</a>
+      ) : (
+        <a class="button secondary" href="/cv/">View CV</a>
+      )}
+    </div>
+  </section>
 </BaseLayout>
+
 <style>
   .not-found { text-align: center; padding-block: 5rem 6rem; }
-  .large-number { font-family: var(--serif); font-size: clamp(6rem, 16vw, 11rem); letter-spacing: -.08em; line-height: 1; margin: 1.5rem 0; color: var(--accent); }
-  h1 { font-family: var(--serif); font-size: clamp(2rem, 4vw, 3rem); font-weight: 450; letter-spacing: -.04em; }
-  .not-found > p:last-of-type { line-height: 1.8; }
+  .large-number {
+    font-family: var(--serif);
+    font-size: clamp(5.5rem, 15vw, 10rem);
+    letter-spacing: -.08em;
+    line-height: 1;
+    margin: 1rem 0 1.2rem;
+    color: var(--accent);
+  }
+  h1 { font-family: var(--serif); font-size: clamp(2rem, 4vw, 3rem); font-weight: 400; letter-spacing: -.035em; }
+  .not-found > p:last-of-type { line-height: 1.75; }
   .not-found-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; }
 </style>

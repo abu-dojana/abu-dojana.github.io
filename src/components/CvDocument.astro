@@ -1,56 +1,97 @@
 ---
-import { createDefaultCvState, deriveCvView, type CvModel, type CvState } from '../lib/cv';
+import type { CvModel } from '../lib/cv';
 
-interface Props { model: CvModel; state?: CvState; documentId?: string }
-const { model, state = createDefaultCvState(model), documentId = 'cv-document' } = Astro.props;
-const visible = new Map(deriveCvView(model, state).map((section) => [section.id, new Set(section.entries.map((entry) => entry.id))]));
-const sections = [...model.sections].sort((a, b) => state.sectionOrder.indexOf(a.id) - state.sectionOrder.indexOf(b.id));
-const progressLabel = { planned: 'Planned', 'in-progress': 'In progress', completed: 'Completed', '': '' };
-const hasContacts = Boolean(model.profile.email || model.profile.location || model.profile.links.length);
+interface Props {
+  model: CvModel;
+  documentId?: string;
+}
+
+const { model, documentId = 'cv-document' } = Astro.props;
+const { profile, sections } = model;
+const hasContacts = Boolean(
+  profile.email || profile.phone || profile.location || profile.links.length > 0,
+);
+
+const cleanUrl = (url: string) =>
+  url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/+$/, '');
 ---
 
-<article class="cv-document" id={documentId} aria-label={model.demo ? 'Example CV preview' : 'CV preview'} data-cv-document>
-  {model.demo && (
-    <aside class="cv-example-banner" data-cv-example-banner>
-      <strong>Example CV</strong> — illustrative content only. Replace every example before applying.
-    </aside>
-  )}
+<article class="cv-document" id={documentId} aria-label="Curriculum Vitae">
   <header class="cv-document-header">
-    <h1>{model.profile.name}</h1>
-    <p class="cv-headline" data-cv-headline hidden={!model.profile.headline}>{model.profile.headline}</p>
-    <div class="cv-contact" data-cv-public-contact hidden={!hasContacts}>
-      {model.profile.email && <a href={`mailto:${model.profile.email}`}>{model.profile.email}</a>}
-      {model.profile.location && <span>{model.profile.location}</span>}
-      {model.profile.links.map((link) => <a href={link.url}>{link.label}</a>)}
-    </div>
-    <p class="cv-contact cv-contact-override" data-cv-contact-override hidden></p>
-    <p class="cv-summary" data-cv-summary hidden={!model.profile.summary}>{model.profile.summary}</p>
-    {model.profile.skills.length > 0 && <p class="cv-skills"><strong>Skills</strong> · {model.profile.skills.join(' · ')}</p>}
+    <h1>{profile.name}</h1>
+    {profile.headline && <p class="cv-headline">{profile.headline}</p>}
+    {hasContacts && (
+      <div class="cv-contact">
+        {profile.email && <a href={`mailto:${profile.email}`}>{profile.email}</a>}
+        {profile.phone && <span>{profile.phone}</span>}
+        {profile.location && <span>{profile.location}</span>}
+        {profile.links.map(link => (
+          <a href={link.url} target="_blank" rel="noopener noreferrer">
+            {link.label}: {cleanUrl(link.url)}
+          </a>
+        ))}
+      </div>
+    )}
   </header>
 
-  <div data-cv-document-sections>
-    {sections.map((section) => (
-      <section class="cv-section" data-cv-section={section.id} hidden={!visible.has(section.id)}>
-        <h2>{section.title}</h2>
-        <div data-cv-section-entries>
-          {[...section.entries].sort((a, b) => state.entryOrder.indexOf(a.id) - state.entryOrder.indexOf(b.id)).map((entry) => (
-            <section class="cv-entry" data-cv-entry={entry.id} hidden={!visible.get(section.id)?.has(entry.id)}>
-              <div class="cv-entry-heading">
-                <h3>{entry.title} {entry.example && <span class="cv-entry-tag">Example</span>}</h3>
-                {entry.date && <span class="cv-entry-date">{entry.date}</span>}
-              </div>
-              {(entry.subtitle || entry.progress) && <p class="cv-entry-subtitle">
-                {entry.subtitle}
-                {entry.subtitle && entry.progress && ' · '}
-                {progressLabel[entry.progress]}
-              </p>}
-              {entry.bullets.length > 0 && <ul>{entry.bullets.map((bullet) => <li>{bullet}</li>)}</ul>}
-              {entry.links.length > 0 && <p class="cv-entry-links">{entry.links.map((link) => <a href={link.url}>{link.label}</a>)}</p>}
-            </section>
-          ))}
-        </div>
-      </section>
-    ))}
-  </div>
-  <p class="cv-empty-selection" data-cv-empty-selection hidden={visible.size > 0}>Select at least one entry and its section to add content to this CV.</p>
+  {profile.summary && (
+    <section class="cv-section">
+      <h2>Summary</h2>
+      <p class="cv-summary">{profile.summary}</p>
+    </section>
+  )}
+
+  {sections.map(section => (
+    <section class="cv-section">
+      <h2>{section.title}</h2>
+      <div class="cv-section-entries">
+        {section.entries.map(entry => (
+          <article class="cv-entry">
+            <div class="cv-entry-heading">
+              <h3>{entry.title}</h3>
+              {entry.date && <span class="cv-entry-date">{entry.date}</span>}
+            </div>
+            {(entry.subtitle || entry.location) && (
+              <p class="cv-entry-subtitle">
+                {[entry.subtitle, entry.location].filter(Boolean).join(' · ')}
+              </p>
+            )}
+            {entry.summary && <p class="cv-entry-summary">{entry.summary}</p>}
+            {entry.bullets.length > 0 && (
+              <ul>
+                {entry.bullets.map(bullet => <li>{bullet}</li>)}
+              </ul>
+            )}
+            {entry.tech.length > 0 && (
+              <p class="cv-entry-tech">
+                <strong>Technologies:</strong> {entry.tech.join(', ')}
+              </p>
+            )}
+            {entry.links.length > 0 && (
+              <p class="cv-entry-links">
+                {entry.links.map(link => (
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    {link.label}: {cleanUrl(link.url)}
+                  </a>
+                ))}
+              </p>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  {profile.skillGroups.length > 0 && (
+    <section class="cv-section">
+      <h2>Skills</h2>
+      <div class="cv-skills-list">
+        {profile.skillGroups.map(group => (
+          <p class="cv-skill-row">
+            <strong>{group.category}:</strong> {group.items.join(', ')}
+          </p>
+        ))}
+      </div>
+    </section>
+  )}
 </article>

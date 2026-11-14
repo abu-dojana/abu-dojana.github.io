@@ -1,0 +1,338 @@
+---
+interface Props {
+  images: string[];
+  title: string;
+}
+
+const { images, title } = Astro.props;
+const multiple = images.length > 1;
+const altFor = (index: number) =>
+  multiple ? `${title} — image ${index + 1} of ${images.length}` : `${title} preview`;
+---
+{images.length > 0 && (
+  <div class="gallery" data-gallery data-images={JSON.stringify(images)} data-title={title}>
+    <div class="gallery-stage">
+      <button
+        type="button"
+        class="gallery-stage-trigger"
+        data-gallery-open
+        aria-label={`View ${title} image fullscreen`}
+      >
+        <img
+          src={images[0]}
+          alt={altFor(0)}
+          class="gallery-main-img"
+          data-gallery-main
+          loading="eager"
+          decoding="async"
+        />
+      </button>
+      {multiple && (
+        <>
+          <button
+            type="button"
+            class="gallery-nav gallery-prev"
+            data-gallery-prev
+            aria-label="Previous image"
+          >
+            <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m12.5 4.5-5.5 5.5 5.5 5.5"/></svg>
+          </button>
+          <button
+            type="button"
+            class="gallery-nav gallery-next"
+            data-gallery-next
+            aria-label="Next image"
+          >
+            <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m7.5 4.5 5.5 5.5-5.5 5.5"/></svg>
+          </button>
+        </>
+      )}
+      <div class="gallery-toolbar">
+        {multiple && <span class="gallery-counter" data-gallery-counter>1 / {images.length}</span>}
+        <button
+          type="button"
+          class="gallery-expand"
+          data-gallery-open
+          aria-label="Open image fullscreen"
+          title="Enlarge image"
+        >
+          <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M12.5 3.5h4v4M16.5 3.5l-5 5M7.5 16.5h-4v-4M3.5 16.5l5-5"/></svg>
+        </button>
+      </div>
+    </div>
+
+    {multiple && (
+      <div class="gallery-thumbs" role="list" aria-label={`${title} gallery thumbnails`}>
+        {images.map((src, index) => (
+          <button
+            type="button"
+            class="gallery-thumb"
+            data-gallery-thumb={index}
+            aria-label={`Show image ${index + 1} of ${images.length}`}
+            aria-current={index === 0 ? 'true' : 'false'}
+          >
+            <img src={src} alt="" loading="lazy" decoding="async" />
+          </button>
+        ))}
+      </div>
+    )}
+
+    <dialog class="gallery-lightbox" data-gallery-dialog aria-label={`${title} image viewer`}>
+      <div class="gallery-lightbox-frame">
+        <div class="gallery-lightbox-bar">
+          <span class="gallery-lightbox-caption" data-gallery-dialog-caption>
+            {multiple ? `${title} · 1 / ${images.length}` : title}
+          </span>
+          <button
+            type="button"
+            class="gallery-lightbox-close"
+            data-gallery-close
+            aria-label="Close image viewer"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="gallery-lightbox-stage">
+          {multiple && (
+            <button
+              type="button"
+              class="gallery-lightbox-nav gallery-lightbox-prev"
+              data-gallery-dialog-prev
+              aria-label="Previous image"
+            >
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m12.5 4.5-5.5 5.5 5.5 5.5"/></svg>
+            </button>
+          )}
+          <img src={images[0]} alt={altFor(0)} data-gallery-dialog-img />
+          {multiple && (
+            <button
+              type="button"
+              class="gallery-lightbox-nav gallery-lightbox-next"
+              data-gallery-dialog-next
+              aria-label="Next image"
+            >
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m7.5 4.5 5.5 5.5-5.5 5.5"/></svg>
+            </button>
+          )}
+        </div>
+      </div>
+    </dialog>
+  </div>
+)}
+
+<style>
+  .gallery {
+    margin: 0 0 28px;
+  }
+  .gallery-stage {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-alt);
+    overflow: hidden;
+  }
+  .gallery-stage-trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+  }
+  .gallery-main-img {
+    display: block;
+    width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+    margin: 0 auto;
+    background: var(--surface-alt);
+  }
+  .gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink);
+    opacity: .9;
+    transition: opacity .15s, border-color .15s, color .15s;
+  }
+  .gallery-nav:hover {
+    opacity: 1;
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .gallery-prev { left: 12px; }
+  .gallery-next { right: 12px; }
+  .gallery-nav svg,
+  .gallery-expand svg,
+  .gallery-lightbox-nav svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .gallery-toolbar {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .gallery-counter {
+    padding: 4px 9px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    color: var(--ink);
+    font: 11px/1.3 var(--mono);
+  }
+  .gallery-expand {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .gallery-expand:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .gallery-thumbs {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .gallery-thumb {
+    flex: none;
+    width: 96px;
+    height: 62px;
+    padding: 0;
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--surface-alt);
+    opacity: .72;
+    transition: opacity .15s, border-color .15s;
+  }
+  .gallery-thumb:hover {
+    opacity: .95;
+  }
+  .gallery-thumb[aria-current="true"] {
+    border-color: var(--accent);
+    opacity: 1;
+  }
+  .gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .gallery-lightbox {
+    max-width: min(94vw, 1200px);
+    max-height: 92vh;
+    width: 100%;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 24px 64px #0006;
+  }
+  .gallery-lightbox::backdrop {
+    background: #000b;
+  }
+  .gallery-lightbox-frame {
+    display: flex;
+    flex-direction: column;
+    max-height: 92vh;
+  }
+  .gallery-lightbox-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .gallery-lightbox-caption {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+  .gallery-lightbox-close {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink);
+    font-size: 20px;
+    line-height: 1;
+    padding: 0;
+  }
+  .gallery-lightbox-close:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .gallery-lightbox-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .gallery-lightbox-stage img {
+    max-width: 100%;
+    max-height: calc(92vh - 96px);
+    object-fit: contain;
+  }
+  .gallery-lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink);
+    z-index: 2;
+  }
+  .gallery-lightbox-nav:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .gallery-lightbox-prev { left: 16px; }
+  .gallery-lightbox-next { right: 16px; }
+  @media print {
+    .gallery-nav,
+    .gallery-toolbar,
+    .gallery-thumbs,
+    .gallery-lightbox {
+      display: none !important;
+    }
+  }
+</style>

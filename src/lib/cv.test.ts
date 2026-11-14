@@ -1,133 +1,202 @@
 import { describe, expect, it } from 'vitest';
-import type { Entry, SiteContent } from './types';
-import {
-  createCvModel, createDefaultCvState, deriveCvView, moveCvEntry, moveCvSection,
-  parseCvState, reconcileCvState, serializeCvState, setCvEntrySelected, setCvSectionSelected,
-} from './cv';
+import { createCvModel } from './cv';
+import type { Section, SectionItem, SiteContent } from './types';
 
-function entry(id: string, options: Partial<Entry> = {}): Entry {
+function makeItem(overrides: Partial<SectionItem> = {}): SectionItem {
   return {
-    id, slug: id, title: `Entry ${id}`, summary: '', categories: [], tags: [],
-    published: true, example: false, featured: false, date: '', endDate: '',
-    cover: '', coverAlt: '', links: [], details: [], progress: '',
-    cv: { include: true, section: 'work', title: '', subtitle: '', date: '', bullets: [`Evidence for ${id}`], order: 0 },
-    body: '', html: '', readingMinutes: 1,
-    ...options,
+    id: 'item-1',
+    slug: 'item-1',
+    sectionSlug: 'projects',
+    kind: 'project',
+    title: 'Sample Item',
+    subtitle: '',
+    summary: 'Concise summary.',
+    images: [],
+    cover: '',
+    coverAlt: '',
+    date: '2026-10-01',
+    endDate: '',
+    current: false,
+    dateLabel: 'Oct 2026',
+    status: 'completed',
+    role: '',
+    organization: '',
+    organizationUrl: '',
+    employmentType: '',
+    institution: '',
+    institutionUrl: '',
+    field: '',
+    grade: '',
+    location: '',
+    tech: [],
+    tags: [],
+    highlights: [],
+    liveUrl: '',
+    repoUrl: '',
+    links: [],
+    details: [],
+    featured: false,
+    showOnCv: true,
+    published: true,
+    order: 0,
+    body: '',
+    html: '',
+    readingMinutes: 1,
+    ...overrides,
   };
 }
 
-function site(entries: Entry[] = [entry('a'), entry('b'), entry('c', {
-  cv: { include: true, section: 'learning', title: '', subtitle: '', date: '', bullets: [], order: 0 },
-})]): SiteContent {
+function makeSite(overrides: Partial<SiteContent> = {}): SiteContent {
   return {
     settings: {
-      siteTitle: 'A notebook', name: 'A real person', headline: 'A short introduction',
-      bio: 'A truthful summary.', email: 'public@example.com', location: 'A city', links: [], skills: [],
-      homeEyebrow: '', homeTitle: '', homeDescription: '', footerNote: '', preview: true, navigation: [],
+      siteTitle: 'Abu Dojana',
+      name: 'Abu Dojana',
+      headline: '',
+      bio: '',
+      avatar: '',
+      email: '',
+      phone: '',
+      location: '',
+      links: [],
+      skillGroups: [],
+      homeEyebrow: '',
+      homeTitle: '',
+      homeDescription: '',
+      footerNote: '',
+      showCvInNavigation: true,
+      noindex: false,
+      externalLinks: [],
     },
-    categories: [], pages: [], entries,
-    about: { id: '40000000-0000-4000-8000-000000000001', slug: 'about', title: 'About', summary: '', published: true, example: false, body: '', html: '', showInNavigation: true, navigationLabel: 'About', order: 99, layout: 'article', items: [] },
-    cvSections: [{ id: 'work', title: 'Selected work', order: 0 }, { id: 'learning', title: 'Learning', order: 1 }],
+    sections: [],
+    about: {
+      id: 'about',
+      slug: 'about',
+      title: 'About',
+      type: 'general',
+      summary: '',
+      published: true,
+      showInNavigation: true,
+      navigationLabel: 'About',
+      order: 999,
+      body: '',
+      html: '',
+      items: [],
+    },
+    projects: [],
+    experience: [],
+    education: [],
+    customItems: [],
+    allItems: [],
+    ...overrides,
   };
 }
 
-describe('CV content and honest defaults', () => {
-  it('excludes unpublished, opted-out, and example records from a real CV', () => {
-    const fixture = site([
-      entry('real'), entry('draft', { published: false }), entry('sample', { example: true }),
-      entry('private-selection', { cv: { ...entry('unused').cv, include: false } }),
-    ]);
-    const model = createCvModel(fixture);
-    expect(model.sections.flatMap((section) => section.entries.map((item) => item.id))).toEqual(['real']);
+describe('ATS CV model generation', () => {
+  it('orders sections Experience -> Selected Projects -> Education -> Custom sections', () => {
+    const customSection: Section = {
+      id: 'awards',
+      slug: 'awards',
+      title: 'Awards',
+      type: 'general',
+      summary: '',
+      published: true,
+      showInNavigation: true,
+      navigationLabel: 'Awards',
+      order: 10,
+      body: '',
+      html: '',
+      items: [makeItem({ id: 'aw1', kind: 'item', sectionSlug: 'awards', title: 'Hackathon Winner', showOnCv: true })],
+    };
+
+    const site = makeSite({
+      sections: [customSection],
+      experience: [
+        makeItem({
+          id: 'exp1',
+          kind: 'experience',
+          sectionSlug: 'experience',
+          title: 'Software Engineer',
+          organization: 'Acme',
+          employmentType: 'Full-time',
+          location: 'Remote',
+          dateLabel: 'Jan 2025 – Present',
+          highlights: ['Reduced latency by 35%.'],
+        }),
+      ],
+      projects: [
+        makeItem({
+          id: 'proj1',
+          kind: 'project',
+          sectionSlug: 'projects',
+          title: 'SpaceTabs',
+          liveUrl: 'https://example.com/store',
+          highlights: [],
+          summary: 'Local-first tab workspace manager.',
+        }),
+      ],
+      education: [
+        makeItem({
+          id: 'edu1',
+          kind: 'education',
+          sectionSlug: 'education',
+          title: 'B.Sc.',
+          field: 'Computer Science',
+          institution: 'University',
+          grade: '3.9/4.0',
+        }),
+      ],
+    });
+
+    const model = createCvModel(site);
     expect(model.ready).toBe(true);
-    const demo = createCvModel(fixture, true);
-    expect(demo.sections[0].entries.map((item) => item.id)).toEqual(['real', 'sample']);
-    expect(demo.sections[0].entries.find((item) => item.id === 'sample')?.example).toBe(true);
-    expect(demo.demo).toBe(true);
-    expect(demo.profile.name).toBe('Example profile');
-    expect(demo.profile.email).toBe('');
+    expect(model.sections.map(s => s.title)).toEqual([
+      'Experience',
+      'Selected Projects',
+      'Education',
+      'Awards',
+    ]);
+    expect(model.sections[0].entries[0]).toMatchObject({
+      title: 'Software Engineer',
+      subtitle: 'Acme · Full-time',
+      location: 'Remote',
+      date: 'Jan 2025 – Present',
+      summary: '',
+      bullets: ['Reduced latency by 35%.'],
+    });
+    // Falls back to summary when highlights is empty
+    expect(model.sections[1].entries[0]).toMatchObject({
+      title: 'SpaceTabs',
+      summary: 'Local-first tab workspace manager.',
+      bullets: [],
+      links: [{ label: 'Live', url: 'https://example.com/store' }],
+    });
+    expect(model.sections[2].entries[0]).toMatchObject({
+      title: 'B.Sc., Computer Science',
+      subtitle: 'University · Grade: 3.9/4.0',
+    });
   });
 
-  it('leaves a blank or examples-only profile unready without inventing a name', () => {
-    const blank = site([entry('sample', { example: true })]);
-    blank.settings.name = '';
-    expect(createCvModel(blank)).toMatchObject({ ready: false, profile: { name: '' }, sections: [] });
-    expect(createCvModel(blank, true).ready).toBe(true);
-    expect(createCvModel(site([])).ready).toBe(false);
-    const noName = site();
+  it('excludes unpublished and showOnCv=false items and omits empty sections', () => {
+    const site = makeSite({
+      projects: [
+        makeItem({ id: 'p1', title: 'Visible', showOnCv: true, published: true }),
+        makeItem({ id: 'p2', title: 'Draft', showOnCv: true, published: false }),
+        makeItem({ id: 'p3', title: 'Hidden from CV', showOnCv: false, published: true }),
+      ],
+    });
+    const model = createCvModel(site);
+    expect(model.sections).toHaveLength(1);
+    expect(model.sections[0].entries.map(e => e.id)).toEqual(['p1']);
+  });
+
+  it('reports ready=false when name is blank or no CV content exists', () => {
+    const empty = makeSite();
+    expect(createCvModel(empty).ready).toBe(false);
+
+    const noName = makeSite({
+      projects: [makeItem()],
+    });
     noName.settings.name = '   ';
     expect(createCvModel(noName).ready).toBe(false);
-  });
-
-  it('uses CV presentation independently of categories and retains truthful progress', () => {
-    const record = entry('work', {
-      categories: ['adventures'], progress: 'in-progress',
-      cv: { include: true, section: 'learning', title: 'Selected title', subtitle: 'A course', date: '2026–present', bullets: ['  A concrete result  ', ''], order: 0 },
-    });
-    expect(createCvModel(site([record])).sections[0]).toMatchObject({
-      id: 'learning', entries: [{ title: 'Selected title', subtitle: 'A course', date: '2026–present', bullets: ['A concrete result'], progress: 'in-progress' }],
-    });
-  });
-});
-
-describe('CV selection and ordering', () => {
-  it('hides empty or disabled sections and restores retained entry choices when re-enabled', () => {
-    const model = createCvModel(site());
-    const defaults = createDefaultCvState(model);
-    let state = setCvSectionSelected(defaults, model, 'work', false);
-    expect(deriveCvView(model, state).map((section) => section.id)).toEqual(['learning']);
-    state = setCvSectionSelected(state, model, 'work', true);
-    state = setCvEntrySelected(state, model, 'a', false);
-    expect(deriveCvView(model, state)[0].entries.map((item) => item.id)).toEqual(['b']);
-    state = setCvEntrySelected(state, model, 'b', false);
-    expect(deriveCvView(model, state).map((section) => section.id)).toEqual(['learning']);
-    expect(defaults.selectedEntryIds).toEqual(['a', 'b', 'c']);
-  });
-
-  it('moves entries only inside their section and moves sections without mutating the default state', () => {
-    const model = createCvModel(site());
-    const defaults = createDefaultCvState(model);
-    const moved = moveCvEntry(defaults, model, 'b', -1);
-    expect(deriveCvView(model, moved)[0].entries.map((item) => item.id)).toEqual(['b', 'a']);
-    expect(moveCvEntry(moved, model, 'b', -1)).toEqual(moved);
-    expect(moveCvEntry(moved, model, 'missing', 1)).toEqual(moved);
-    const reordered = moveCvSection(moved, model, 'learning', -1);
-    expect(deriveCvView(model, reordered).map((section) => section.id)).toEqual(['learning', 'work']);
-    expect(defaults.entryOrder).toEqual(['a', 'b', 'c']);
-    expect(defaults.sectionOrder).toEqual(['work', 'learning']);
-  });
-
-  it('drops stale and duplicate IDs without reselecting intentionally excluded or new entries', () => {
-    const model = createCvModel(site());
-    const saved = {
-      version: 1 as const,
-      selectedEntryIds: ['b', 'b', 'removed'], selectedSectionIds: ['work', 'removed'],
-      entryOrder: ['b', 'removed', 'b', 'a'], sectionOrder: ['removed', 'work', 'work'],
-    };
-    expect(reconcileCvState(saved, model)).toEqual({
-      version: 1, selectedEntryIds: ['b'], selectedSectionIds: ['work'],
-      entryOrder: ['b', 'a', 'c'], sectionOrder: ['work', 'learning'],
-    });
-  });
-});
-
-describe('CV browser state privacy and recovery', () => {
-  it.each([null, '', '{bad json', 'null', '[]', '42', '{"version":2}', '{"version":1,"selectedEntryIds":[{}]}'])(
-    'recovers malformed or unsupported storage: %s', (raw) => {
-      const model = createCvModel(site());
-      expect(parseCvState(raw, model)).toEqual(createDefaultCvState(model));
-    },
-  );
-
-  it('allows an intentionally empty CV selection and never serializes free-text extras', () => {
-    const model = createCvModel(site());
-    const state = { ...createDefaultCvState(model), selectedEntryIds: [], selectedSectionIds: [] };
-    const input = { ...state, email: 'private@example.com', contact: 'PRIVATE CONTACT', summary: 'PRIVATE SUMMARY' };
-    const serialized = serializeCvState(input);
-    expect(serialized).not.toContain('PRIVATE');
-    expect(serialized).not.toContain('private@example.com');
-    expect(Object.keys(JSON.parse(serialized))).toEqual(['version', 'selectedEntryIds', 'selectedSectionIds', 'entryOrder', 'sectionOrder']);
-    expect(parseCvState(JSON.stringify(input), model)).toEqual(state);
-    expect(deriveCvView(model, parseCvState(serialized, model))).toEqual([]);
   });
 });

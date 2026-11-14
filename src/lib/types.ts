@@ -1,31 +1,111 @@
-export interface Link { label: string; url: string }
+export interface Link {
+  label: string;
+  url: string;
+}
+
+export interface Detail {
+  label: string;
+  value: string;
+}
+
+export interface SkillGroup {
+  category: string;
+  items: string[];
+}
+
+export type SectionType = 'projects' | 'experience' | 'education' | 'skills' | 'general';
+
 export interface NavItem {
-  id: string; label: string;
-  type: 'home' | 'explore' | 'page' | 'category' | 'about' | 'cv' | 'external';
-  target: string; visible: boolean;
+  id: string;
+  label: string;
+  type: 'home' | 'section' | 'about' | 'cv' | 'external';
+  target: string;
+  visible: boolean;
 }
+
 export interface Settings {
-  siteTitle: string; name: string; headline: string; bio: string;
-  email: string; location: string; links: Link[]; skills: string[];
-  homeEyebrow: string; homeTitle: string; homeDescription: string;
-  footerNote: string; preview: boolean; navigation: NavItem[];
+  siteTitle: string;
+  name: string;
+  headline: string;
+  bio: string;
+  avatar: string;
+  email: string;
+  phone: string;
+  location: string;
+  links: Link[];
+  skillGroups: SkillGroup[];
+  homeEyebrow: string;
+  homeTitle: string;
+  homeDescription: string;
+  footerNote: string;
+  showCvInNavigation: boolean;
+  noindex: boolean;
+  externalLinks: Link[];
 }
-export interface Category { id: string; slug: string; title: string; description: string; order: number }
-export interface CvSection { id: string; title: string; order: number }
-export interface Entry {
-  pageId?: string;
-  id: string; slug: string; title: string; summary: string;
-  categories: string[]; tags: string[]; published: boolean; example: boolean;
-  featured: boolean; date: string; endDate: string; cover: string; coverAlt: string;
-  links: Link[]; details: { label: string; value: string }[];
-  progress: '' | 'planned' | 'in-progress' | 'completed';
-  cv: { include: boolean; section: string; title: string; subtitle: string; date: string; bullets: string[]; order: number };
-  body: string; html: string; readingMinutes: number;
+
+export interface SectionItem {
+  id: string;
+  slug: string;
+  sectionSlug: string;
+  kind: 'project' | 'experience' | 'education' | 'item';
+  title: string;
+  subtitle: string;
+  summary: string;
+  images: string[];
+  cover: string;
+  coverAlt: string;
+  date: string;
+  endDate: string;
+  current: boolean;
+  dateLabel: string;
+  status: '' | 'planned' | 'in-progress' | 'completed' | 'archived';
+  role: string;
+  organization: string;
+  organizationUrl: string;
+  employmentType: string;
+  institution: string;
+  institutionUrl: string;
+  field: string;
+  grade: string;
+  location: string;
+  tech: string[];
+  tags: string[];
+  highlights: string[];
+  liveUrl: string;
+  repoUrl: string;
+  links: Link[];
+  details: Detail[];
+  featured: boolean;
+  showOnCv: boolean;
+  published: boolean;
+  order: number;
+  body: string;
+  html: string;
+  readingMinutes: number;
 }
-export interface Page {
-  id: string; slug: string; title: string; summary: string;
-  published: boolean; example: boolean; body: string; html: string;
-  showInNavigation: boolean; navigationLabel: string; order: number;
-  layout: 'cards' | 'list' | 'timeline' | 'article'; items: Entry[];
+
+export interface Section {
+  id: string;
+  slug: string;
+  title: string;
+  type: SectionType;
+  summary: string;
+  published: boolean;
+  showInNavigation: boolean;
+  navigationLabel: string;
+  order: number;
+  body: string;
+  html: string;
+  items: SectionItem[];
 }
-export interface SiteContent { settings: Settings; categories: Category[]; entries: Entry[]; pages: Page[]; about: Page; cvSections: CvSection[] }
+
+export interface SiteContent {
+  settings: Settings;
+  sections: Section[];
+  about: Section;
+  projects: SectionItem[];
+  experience: SectionItem[];
+  education: SectionItem[];
+  customItems: SectionItem[];
+  allItems: SectionItem[];
+}

@@ -1,151 +1,84 @@
-# Edit your website through Pages
+# Editing your portfolio through Pages CMS
 
 - Website: <https://abu-dojana.github.io/>
 - Dashboard: <https://app.pagescms.org/>
 - Repository: <https://github.com/abu-dojana/abu-dojana.github.io>
 
-The normal workflow is **Pages → choose or create a page → Items → Add item → Save**. Make a page for Projects, Skills, Experiences, Adventures, Blogs, Research, Education, Hobbies, or any other subject. Every page owns its items. You do not need to create a category, a separate entry, or a menu record first.
+## 1. Open the dashboard
 
-There is no fixed subject list or page-count limit in the site. You can create, rename, unpublish, or delete ordinary pages in the dashboard. Published menu links appear automatically, with additional links under **More** when needed. **Home, About, and CV are permanent sections.** Their content remains editable, while deleting an ordinary page cannot remove them.
+1. Open <https://app.pagescms.org/> and sign in with the GitHub account that owns `abu-dojana/abu-dojana.github.io`.
+2. Select the repository and choose the **main** branch.
+3. The sidebar lists:
+   - **Projects** — each project is its own file with a multi-image gallery.
+   - **Experience** — roles, internships, and work history.
+   - **Education** — degrees, institutions, and coursework.
+   - **Custom section items** — entries for any custom section you create (Blog, Research, Anime, Awards, etc.).
+   - **Sections & Menu Tabs** — create, reorder, show/hide, or delete menu sections.
+   - **About** — your personal introduction page.
+   - **Profile & website settings** — name, headline, bio, contact links, skills, and homepage copy.
+   - **Images** — uploaded media stored in `public/images/`.
 
-## Open the dashboard
+Every save in Pages CMS commits directly to GitHub, and GitHub Actions automatically validates, tests, builds, and deploys the website.
 
-1. Use **Log in** on the website to open the Pages CMS owner dashboard, or open the dashboard link above.
-2. Sign in with the existing GitHub account that owns `abu-dojana/abu-dojana.github.io`.
-3. Open the repository and choose **main**, the live publishing branch.
-4. The sidebar shows **About**, **Pages**, **Profile & website settings**, **CV sections**, and images.
+> Keep private information (home addresses, private phone numbers, transcripts) out of the dashboard, since the repository is public.
 
-Log in is for owner editing. Visitors can read the website and use its CV builder without an account or signup. A successful dashboard save creates a GitHub commit; a successful publishing workflow then updates the website. Those are separate steps.
+---
 
-All repository files and their history are public. Draft status keeps content off the website, but does not make its file private. Keep private notes, home addresses, transcripts, and private contact details out of the dashboard.
+## 2. Add a project (with multiple photos)
 
-## Add a page
+1. Open **Projects → Add an entry**.
+2. Fill in **Project title** and **Short summary**.
+3. Under **Project images / screenshots**, click to upload or select multiple images.
+   - You can upload or select several images at once.
+   - Drag thumbnails to reorder them — the first image is automatically used as the cover thumbnail on cards.
+4. Optionally add **Your role**, **Tech stack**, **Live demo / Store URL**, **Source code / GitHub URL**, **Dates**, **Key highlights** (short bullet points used on both the project page and your CV), and the **Full project write-up**.
+5. Keep **Published** enabled (and **Include on CV** / **Feature on homepage** enabled if desired) and click **Save**.
 
-Open **Pages → New page** (the dashboard may label this **New entry** within the Pages collection).
+Your project appears on `/projects/<project-name>/`, on the Projects page, and on your CV.
 
-1. Enter a **Page name**, such as Projects, Experience, Skills, Adventures, or Blog.
-2. Enter a **URL name**, such as `projects` or `adventures`. Use lowercase letters, numbers, and hyphens.
-3. Add an optional short description and **Page introduction**.
-4. Leave **Show this page in the menu** enabled if you want a menu link. Set an optional short menu label and page position; lower numbers come first.
-5. Enable **Publish on the website** and save when ready.
+---
 
-Published pages with the menu option enabled appear automatically. Their names, menu labels, and positions are editable in the same form. The menu label can differ from the page heading. Additional menu links appear under **More**; they are not dropped when the list grows.
+## 3. Add Experience or Education
 
-The address is `/pages/its-url-name/`. Keep the URL name unchanged after sharing a link; changing it changes the address.
+1. Open **Experience** (or **Education**) → **Add an entry**.
+2. Fill in your role and company (or degree and institution), dates, and optional **Currently work here / Currently studying here** toggle.
+3. Add concise achievement bullet points under **Responsibilities & achievements** (or **Coursework, thesis, awards**). These appear both on the section page and on your CV automatically.
+4. Keep **Published** and **Include on CV** enabled and click **Save**.
 
-## Edit About
+Empty built-in sections stay hidden from the navigation bar automatically until you publish at least one entry inside them.
 
-Open **About** directly in the dashboard sidebar. It is separate from the ordinary Pages collection.
+---
 
-Edit the page heading, short introduction, formatted **About you** text, pictures, and optional Items, then save. Its short menu label defaults to **About** and can be changed without changing its address. The page stays at `/pages/about/` and is always published with a menu link; it has no delete, unpublish, or hide controls in the editor.
+## 4. Create a new custom section (e.g. "Anime I've Watched" or "Blog")
 
-The starter is titled **Room to keep becoming.** Replace the example text with your own introduction and turn off **This is example content** when ready. Optional About items use the same editing and CV fields as items on ordinary pages.
+1. Open **Sections & Menu Tabs → Add an entry**.
+2. Enter a **Section title** (for example, `Anime That I Watched` or `Blog`) and a **URL slug** (for example, `anime` or `blog`, using lowercase letters, numbers, and hyphens).
+3. Leave **Section type** as **Custom section (uses Custom section items)**.
+4. Set **Menu tab position** (lower numbers appear earlier in the top menu), keep **Published** and **Show tab in top navigation menu** enabled, and click **Save**.
+5. Now open **Custom section items → Add an entry**, pick your new section from the **Section** dropdown, add a title, summary, images, details, or content, and save.
 
-## Read a page
+Once a custom section has at least one published item (or an introduction body), it automatically appears in your top navigation bar. If there are too many tabs to fit on one row, extra tabs automatically move into the **More** menu.
 
-All subject pages use the same reader. Open a page from the top navigation or **More** to see its overview and introduction. Its items appear in the left-hand list. Selecting an item opens its content in the central reading area, with the owning page and selected item highlighted. On a narrow screen, the item list adapts to the available space.
+---
 
-An item keeps its own `/entries/its-url-name/` link, so you can share it directly. The same page reader surrounds the item when opened from that link. An empty page still works: its introduction remains available and items can be added later.
+## 5. Hide, reorder, or delete a section
 
-## Add things inside a page
+- **Hide temporarily:** Open the section under **Sections & Menu Tabs**, turn off **Published** (hides the section and its items everywhere) or turn off **Show tab in top navigation menu** (removes only the top menu link).
+- **Reorder menu tabs:** Change **Menu tab position** (lower numbers appear first) and save.
+- **Delete a section:** Delete the section entry in **Sections & Menu Tabs** (delete or reassign any items in **Custom section items** that pointed to it first).
 
-For example, to add a project:
+---
 
-**Pages → Projects → Items → Add item**
+## 6. Profile, Skills, and CV PDF export
 
-Enter its title and any details you want. For a skill or hobby, a title alone is enough. Other fields are optional:
+1. Open **Profile & website settings** to enter your **Full name**, **Professional headline**, **Professional summary**, **Public email**, **Location**, **Profile links** (GitHub, LinkedIn, etc.), and **Skills by category** (e.g., Languages, Frameworks, Tools).
+2. Your CV at `/cv/` updates automatically from your Profile, Skills, Experience, Projects, Education, and any custom items with **Include on CV** turned on.
+3. Open `/cv/` and click **Print / Save as PDF**, choose **Save as PDF**, select **A4**, and disable browser headers/footers for a clean PDF resume.
 
-- A short description and a longer formatted story.
-- Cover image and image description.
-- Tags, dates, and progress.
-- Supporting links to code, a demonstration, a report, or another website.
-- Labeled details such as a role, organization, location, or equipment type.
-- A concise CV presentation, if the item should be available in the CV builder.
+---
 
-In the dashboard, items are collapsed by title. Expand one to edit it, add another with the Items control, and reorder the list to change the order in the public page's left-hand item list. Enable **Publish this item**, then save the page. The parent page must also be published.
+## 7. Check that your edit went live
 
-Leave **Custom item URL name** blank for a stable automatic address based on the item's record ID. A friendly custom name is optional, but must be unique across every page. Keep record IDs unchanged so links and saved CV selections remain valid.
-
-### Hide or remove content
-
-- Turn off **Publish this item** to hide an item, then save its page.
-- Turn off the page's publishing switch to hide the whole page and its items. After a successful rebuild, those items also disappear from other public listings and the CV builder.
-- Turn off **Show this page in the menu** to remove only the menu link while keeping the page public.
-- Remove an item from the page's Items list to delete it, then save. GitHub history retains the previous version.
-- Delete a page through Pages CMS to remove the whole page and its items. After a successful rebuild, its menu link, child item routes, and CV items disappear together. Other pages stay intact. An old optional menu override is ignored automatically, so deleting a page does not require a second settings edit or a code change.
-
-Hiding a link does not make its destination private. Deleting content does not erase its history from the public repository.
-
-## Make the starter yours
-
-Under **Profile & website settings**, enter your website name, CV name, headline, short introduction, and any public contact/profile links. Optional fields can stay blank; LinkedIn is optional.
-
-Edit the homepage heading, introduction, and footer in the same form. Change ordinary page ordering through each page's **Page position** field. Edit the permanent About section through **About** in the dashboard sidebar.
-
-Example items are visibly labeled and excluded from your real default CV. Replace their text with your actual work before turning off **This is example content**. If a whole page is marked as an example, all its items are treated as examples too, regardless of each item's setting.
-
-**Preview mode** shows a starter notice and asks search engines not to index the site. Turn it off after adding real content. Search engines decide when to revisit; this is not an instant indexing guarantee.
-
-### Optional extra navigation
-
-Ordinary pages need no separate menu setup. Their menu visibility, label, and position fields are the primary controls.
-
-Use **Optional extra navigation links** for Home, CV, and external websites. It is not required when creating a normal page. About's permanent link is edited in the About form rather than this list.
-
-An existing-page override, if present, can supply a fallback menu label or hide that page's link. It does not create a second link or change the page's position. A page's own short menu label takes precedence; use its **Page position** field to set order. If the destination is deleted or unpublished, its shortcut is not shown. Leftover deleted-page overrides do not block publishing and can be removed from settings whenever convenient.
-
-## Photos and links
-
-Cover images and images inside formatted text use the image library. Upload a JPG, PNG, WebP, AVIF, GIF, or SVG and select it in the editor. Files are stored in `public/images` and published under `/images`.
-
-Describe covers in **Image description** for people who cannot see them. Prefer sensibly sized images rather than full camera-resolution files. Use complete `https://` addresses for external links, or paths beginning with `/` for website links. Content does not execute arbitrary embedded scripts.
-
-## CV content and PDF export
-
-1. Under **CV sections**, create headings such as Education, Experience, Research, Community, or Selected work. Lower position numbers appear first by default.
-2. Open an item inside its page and expand **CV version**.
-3. Enable **Offer this item in the CV builder**, select a CV section, and write a short title/subtitle and concise bullets.
-4. Use the CV date field for a readable date range, then save the page.
-
-CV sections are independent of page names. An item on Adventures could appear under Community or stay out of the CV entirely. Only published items on published pages are eligible. Unpublishing or deleting a page also removes its items from the CV builder.
-
-Describe employment, independent work, volunteering, and training accurately. A planned license remains planned until earned. Course completion is not automatically a professional certification.
-
-The public CV builder lets visitors select and order eligible items and sections. It cannot edit the website. Selections and order are remembered only in the current browser. Temporary headline, summary, and contact overrides remain in memory and are not saved or synchronized; reloading clears them.
-
-Use **Print / Save as PDF** and choose the browser's **Save as PDF** destination. Select A4, turn off browser headers/footers if they add dates or URLs, and inspect the preview. Large selections can span several pages. The CV is always light on paper, even when the website is dark.
-
-The real default CV needs a name and at least one real eligible item. Until then it offers a labeled demonstration. Example output retains its notice in the preview and PDF and should not be used as an application CV.
-
-## Light and dark mode
-
-Open the theme control beside **Log in** to choose from eight light themes and eight dark themes. Each option shows a color preview. The selection updates the whole website immediately and is remembered in the current browser.
-
-Light themes: **Paper, Sand, Rose, Sky, Sage, Lavender, Peach, Slate**. Dark themes: **Forest, Midnight, Charcoal, Plum, Navy, Ember, Espresso, Ocean**.
-
-**System** follows the device preference, using Paper in light mode and Forest in dark mode. Existing Light/Dark choices carry over to those defaults. Theme choices change only that visitor's view; Pages CMS content is shared independently. Printing the CV always uses a white background and dark text.
-
-## Check whether an edit published
-
-1. Confirm the dashboard is on **main**, you saved, and both the page and intended items are published.
-2. Open <https://github.com/abu-dojana/abu-dojana.github.io/actions>.
-3. Find **Check and publish website** for the saved commit and wait for build and deployment to finish.
-4. Reload the live page and confirm the change appears.
-
-A successful dashboard save alone does not prove deployment succeeded. If validation or tests fail, the last successful website stays available. Read the failed step's error, correct the fields, and save again. Common causes are duplicate URL names, missing cover descriptions, invalid dates/links, or an item referring to a deleted CV section.
-
-Before deleting a CV section, reassign or clear it on affected items. Page deletion needs no manual shortcut cleanup; missing page destinations are ignored.
-
-Changes saved on a development branch are not live until merged into **main**. Pull dashboard changes into the checkout before merging so they are retained.
-
-## Recovery
-
-GitHub keeps content history. Open the affected page file's history, find the previous version, and restore it as a new commit rather than rewriting history. A page file contains its introduction and nested items.
-
-The original AcademicPages boilerplate is preserved by **legacy-academicpages-2026-10-29**. Keep that tag and the production history. Restoring the starter also requires returning GitHub Pages to its former branch-based Jekyll publishing setting; the new site uses Astro through GitHub Actions.
-
-## Connect a custom domain later
-
-Verify domain ownership in GitHub, configure it under **Repository Settings → Pages**, and add GitHub's specified DNS records. Set the repository Actions variable **SITE_URL** to the full custom origin, such as `https://your-domain.com`, then run **Check and publish website** so canonical URLs match. Configure root and `www` records and verify HTTPS and redirects.
-
-Use the current official instructions rather than old IP addresses: <https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site>. Domain registration and GitHub hosting are separate services.
+1. Open <https://github.com/abu-dojana/abu-dojana.github.io/actions>.
+2. Wait for the **Check and publish website** workflow on your commit to turn green.
+3. Reload the website to verify your changes. If a build check fails, read the error message in Actions (for example, a duplicate slug or invalid URL), fix the entry in Pages CMS, and save again.

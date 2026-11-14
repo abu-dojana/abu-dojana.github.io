@@ -1,40 +1,389 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getSite } from '../lib/content';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getSite, getVisibleSections, isSectionVisible, sectionUrl } from '../lib/content';
+
 const site = getSite();
 const { settings } = site;
-const allPages = [...site.pages, site.about];
-const pages = allPages.filter(page => page.published).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
-const firstPage = pages.find(page => page.items.some(item => item.published)) || pages[0];
-const initials = settings.siteTitle.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('');
+const visibleSections = [
+  ...getVisibleSections(site),
+  ...(isSectionVisible(site.about, site) ? [site.about] : []),
+].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+
+const projectsSection = visibleSections.find(section => section.type === 'projects');
+const primarySection = projectsSection || visibleSections[0];
+const featuredProjects = site.projects.filter(project => project.published && project.featured);
+const displayName = settings.name || settings.siteTitle;
+const initials = displayName
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map(word => word[0]?.toUpperCase() || '')
+  .join('');
 ---
-<BaseLayout description={settings.homeDescription} active="home">
-  <section class="home-workspace container" aria-label="Welcome">
+
+<BaseLayout description={settings.homeDescription || settings.bio} active="home">
+  <section class="home-workspace container" aria-label="Introduction">
     <div class="home-main-panel">
-      <div class="home-panel-top"><p class="eyebrow">{settings.homeEyebrow || 'A personal corner of the internet'}</p><span class="home-mark" aria-hidden="true">✳</span></div>
-      <div class="home-main-copy">
-        <h1>{settings.homeTitle || 'A space for every part of the story.'}</h1>
-        <p class="home-description">{settings.homeDescription || 'Things made, experiences collected, and ideas worth keeping. Follow any chapter that catches your curiosity.'}</p>
-        <div class="home-actions">{firstPage && <a class="button" href={`/pages/${firstPage.slug}/`}>Open a chapter <span aria-hidden="true">→</span></a>}<a class="button secondary" href="/cv/">View CV <span aria-hidden="true">↗</span></a></div>
+      <div class="home-panel-top">
+        <p class="eyebrow">{settings.homeEyebrow || 'Portfolio'}</p>
       </div>
-      <div class="home-panel-bottom"><span class="home-status-dot" aria-hidden="true"></span><p>A little work. A little life. Room for both.</p><a href="/pages/">All pages <span aria-hidden="true">↗</span></a></div>
+      <div class="home-main-copy">
+        <h1>{settings.homeTitle || displayName}</h1>
+        {(settings.homeDescription || settings.bio) && (
+          <p class="home-description">{settings.homeDescription || settings.bio}</p>
+        )}
+        <div class="home-actions">
+          {primarySection && (
+            <a class="button" href={sectionUrl(primarySection)}>
+              View {primarySection.navigationLabel || primarySection.title} <span aria-hidden="true">→</span>
+            </a>
+          )}
+          <a class="button secondary" href="/cv/">
+            View CV <span aria-hidden="true">↗</span>
+          </a>
+          {settings.email && (
+            <a class="button secondary" href={`mailto:${settings.email}`}>
+              Contact
+            </a>
+          )}
+        </div>
+      </div>
+      <div class="home-panel-bottom">
+        <span class="home-status-dot" aria-hidden="true"></span>
+        <p>{settings.headline || 'Projects, experience, and curriculum vitae.'}</p>
+        <a href="/sections/">All sections <span aria-hidden="true">↗</span></a>
+      </div>
     </div>
-    <aside class="home-side-panel" aria-label="Profile and pages">
-      <div class="home-profile"><div class="home-avatar" aria-hidden="true">{initials}</div><p class="home-profile-label">{settings.name || settings.siteTitle}</p>{settings.headline && <p class="home-headline">{settings.headline}</p>}{settings.bio && <p class="home-bio">{settings.bio}</p>}{settings.location && <p class="home-location">⌖ {settings.location}</p>}</div>
-      <div class="home-page-list"><p class="eyebrow">In this space</p><nav aria-label="Browse pages"><ul>{pages.map(page => <li><a href={`/pages/${page.slug}/`}><span>{page.navigationLabel || page.title}</span><span aria-hidden="true">↗</span></a></li>)}</ul></nav>{!pages.length && <p class="muted">The first chapter is on its way.</p>}</div>
-      {(settings.email || settings.links.length > 0) && <div class="home-contact">{settings.email && <a href={`mailto:${settings.email}`}>Get in touch ↗</a>}{settings.links.map(link => <a href={link.url}>{link.label} ↗</a>)}</div>}
+
+    <aside class="home-side-panel" aria-label="Profile and sections">
+      <div class="home-profile">
+        {settings.avatar ? (
+          <img class="home-avatar-img" src={settings.avatar} alt={displayName} width="64" height="64" />
+        ) : (
+          <div class="home-avatar" aria-hidden="true">{initials}</div>
+        )}
+        <p class="home-profile-label">{displayName}</p>
+        {settings.headline && <p class="home-headline">{settings.headline}</p>}
+        {settings.bio && <p class="home-bio">{settings.bio}</p>}
+        {settings.location && <p class="home-location">{settings.location}</p>}
+      </div>
+
+      <div class="home-page-list">
+        <p class="eyebrow">Sections</p>
+        <nav aria-label="Browse sections">
+          <ul>
+            {visibleSections.map(section => (
+              <li>
+                <a href={sectionUrl(section)}>
+                  <span>{section.navigationLabel || section.title}</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))}
+            <li>
+              <a href="/cv/">
+                <span>Curriculum Vitae</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      {(settings.email || settings.links.length > 0) && (
+        <div class="home-contact">
+          {settings.email && <a href={`mailto:${settings.email}`}>Email ↗</a>}
+          {settings.links.map(link => (
+            <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>
+          ))}
+        </div>
+      )}
     </aside>
   </section>
+
+  {featuredProjects.length > 0 && (
+    <section class="home-featured container" aria-labelledby="featured-projects-heading">
+      <div class="home-featured-head">
+        <div>
+          <p class="eyebrow">Selected Work</p>
+          <h2 id="featured-projects-heading">Featured Projects</h2>
+        </div>
+        {projectsSection && (
+          <a class="home-all-link" href={sectionUrl(projectsSection)}>
+            All projects <span aria-hidden="true">→</span>
+          </a>
+        )}
+      </div>
+      <div class="home-featured-grid">
+        {featuredProjects.map(project => <ProjectCard item={project} />)}
+      </div>
+    </section>
+  )}
 </BaseLayout>
+
 <style>
-  .home-workspace{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(250px,1fr);gap:30px;align-items:stretch;padding-block:36px;min-height:calc(100svh - 255px)}
-  .home-main-panel{display:flex;flex-direction:column;min-width:0;min-height:clamp(400px,calc(100svh - 330px),550px);border:1px solid var(--line);border-radius:30px;background:var(--surface);padding:32px 38px 24px;position:relative;overflow:hidden}
-  .home-panel-top{display:flex;align-items:center;justify-content:space-between;gap:20px}.home-panel-top .eyebrow{margin:0;font-size:10px}.home-mark{font-size:33px;line-height:1;color:var(--accent)}
-  .home-main-copy{margin-block:auto;padding:32px 0;max-width:660px}.home-main-copy h1{font-size:clamp(2.8rem,4.9vw,4.6rem);font-weight:400;line-height:1.07;letter-spacing:-.045em;margin:0 0 28px;white-space:pre-line;text-wrap:balance;max-width:20ch}.home-description{font-size:16px;line-height:1.85;max-width:49ch;color:var(--muted);margin-bottom:30px}.home-actions{display:flex;flex-wrap:wrap;gap:12px}
-  .home-panel-bottom{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:20px;font-size:10px;color:var(--muted)}.home-panel-bottom p{margin:0}.home-panel-bottom a{margin-left:auto;white-space:nowrap;color:var(--accent)}.home-status-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;flex:none}
-  .home-side-panel{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:26px;min-width:0;align-self:center;max-height:none}.home-profile{border-bottom:1px solid var(--line);padding-bottom:22px}.home-avatar{display:flex;align-items:center;justify-content:center;height:62px;width:62px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--serif);font-size:24px;margin-bottom:18px}.home-profile-label{font-size:19px;font-weight:600;letter-spacing:-.03em;margin:0}.home-headline,.home-bio,.home-location{font-size:12px;color:var(--muted);line-height:1.7;margin:8px 0 0}.home-bio{max-height:120px;overflow-y:auto;white-space:pre-line}.home-page-list{min-height:0;padding-top:22px}.home-page-list .eyebrow{margin-bottom:10px}.home-page-list nav{max-height:280px;overflow-y:auto;scrollbar-width:thin;padding-right:6px}.home-page-list ul{list-style:none;padding:0;margin:0}.home-page-list li+li{border-top:1px solid var(--line)}.home-page-list a{display:flex;justify-content:space-between;gap:18px;padding:9px 0;font-size:12px;overflow-wrap:anywhere}.home-page-list a>span:last-child{color:var(--accent);flex:none}.home-contact{display:flex;flex-wrap:wrap;gap:8px 16px;border-top:1px solid var(--line);margin-top:16px;padding-top:16px;font-size:11px;color:var(--accent)}
-  @media(min-width:1500px){.home-workspace{padding-block:50px}.home-main-panel{min-height:610px}}
-  @media(max-width:850px){.home-workspace{grid-template-columns:minmax(0,1.6fr) minmax(220px,1fr);gap:20px}.home-main-panel{padding:25px;min-height:520px}.home-main-copy h1{font-size:3.2rem}.home-side-panel{padding:21px}.home-description{font-size:14px}.home-panel-bottom{flex-wrap:wrap}.home-panel-bottom a{margin-left:0}}
-  @media(max-width:650px){.home-workspace{grid-template-columns:1fr;padding-block:24px;min-height:0}.home-main-panel{min-height:440px;border-radius:20px;padding:24px}.home-main-copy{padding-block:32px}.home-main-copy h1{font-size:clamp(2.7rem,10vw,3.6rem)}.home-side-panel{max-height:none}.home-page-list nav{max-height:260px}.home-profile{display:grid;grid-template-columns:52px minmax(0,1fr);column-gap:15px;align-items:center}.home-avatar{grid-row:1/5;height:52px;width:52px;margin:0;font-size:20px}.home-headline,.home-bio,.home-location{grid-column:2}.home-bio{max-height:none}.home-panel-bottom a{margin-left:auto}}
-  @media print{.home-workspace{display:block;min-height:0}.home-main-panel{min-height:0;border:0;padding:0}.home-side-panel{margin-top:25px}.home-actions{display:none}}
+  .home-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 2.05fr) minmax(260px, 1fr);
+    gap: 28px;
+    align-items: stretch;
+    padding-block: 36px 28px;
+  }
+  .home-main-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: clamp(360px, calc(100svh - 360px), 500px);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--surface);
+    padding: 30px 36px 24px;
+  }
+  .home-panel-top .eyebrow {
+    margin: 0;
+    font-size: 10px;
+  }
+  .home-main-copy {
+    margin-block: auto;
+    padding: 28px 0;
+    max-width: 640px;
+  }
+  .home-main-copy h1 {
+    font-size: clamp(2.5rem, 4.8vw, 4.3rem);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -.04em;
+    margin: 0 0 20px;
+    white-space: pre-line;
+    text-wrap: balance;
+  }
+  .home-description {
+    font-size: 16px;
+    line-height: 1.75;
+    max-width: 52ch;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+  .home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .home-panel-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .home-panel-bottom p {
+    margin: 0;
+  }
+  .home-panel-bottom a {
+    margin-left: auto;
+    white-space: nowrap;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .home-status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex: none;
+  }
+  .home-side-panel {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 24px;
+    min-width: 0;
+    align-self: stretch;
+  }
+  .home-profile {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 20px;
+  }
+  .home-avatar,
+  .home-avatar-img {
+    height: 60px;
+    width: 60px;
+    border-radius: 50%;
+    margin-bottom: 16px;
+  }
+  .home-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--serif);
+    font-size: 22px;
+  }
+  .home-avatar-img {
+    object-fit: cover;
+    border: 1px solid var(--line);
+  }
+  .home-profile-label {
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -.025em;
+    margin: 0;
+  }
+  .home-headline,
+  .home-bio,
+  .home-location {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.65;
+    margin: 7px 0 0;
+  }
+  .home-bio {
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-line;
+  }
+  .home-page-list {
+    padding-top: 20px;
+  }
+  .home-page-list .eyebrow {
+    margin-bottom: 10px;
+  }
+  .home-page-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .home-page-list li + li {
+    border-top: 1px solid var(--line);
+  }
+  .home-page-list a {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 0;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+  .home-page-list a > span:last-child {
+    color: var(--accent);
+    flex: none;
+  }
+  .home-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    border-top: 1px solid var(--line);
+    margin-top: auto;
+    padding-top: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .home-featured {
+    padding-block: 16px 56px;
+  }
+  .home-featured-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .home-featured-head .eyebrow {
+    margin-bottom: 8px;
+  }
+  .home-featured-head h2 {
+    margin: 0;
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+  }
+  .home-all-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .home-featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 24px;
+  }
+
+  @media (max-width: 850px) {
+    .home-workspace {
+      grid-template-columns: minmax(0, 1.5fr) minmax(230px, 1fr);
+      gap: 20px;
+    }
+    .home-main-panel {
+      padding: 24px;
+    }
+    .home-side-panel {
+      padding: 20px;
+    }
+    .home-panel-bottom {
+      flex-wrap: wrap;
+    }
+    .home-panel-bottom a {
+      margin-left: 0;
+    }
+  }
+  @media (max-width: 650px) {
+    .home-workspace {
+      grid-template-columns: 1fr;
+      padding-block: 24px 20px;
+    }
+    .home-main-panel {
+      min-height: 320px;
+      border-radius: 16px;
+      padding: 22px;
+    }
+    .home-profile {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      column-gap: 14px;
+      align-items: center;
+    }
+    .home-avatar,
+    .home-avatar-img {
+      grid-row: 1 / 5;
+      height: 52px;
+      width: 52px;
+      margin: 0;
+      font-size: 19px;
+    }
+    .home-headline,
+    .home-bio,
+    .home-location {
+      grid-column: 2;
+    }
+    .home-bio {
+      max-height: none;
+    }
+    .home-panel-bottom a {
+      margin-left: auto;
+    }
+  }
+  @media print {
+    .home-workspace {
+      display: block;
+    }
+    .home-main-panel {
+      min-height: 0;
+      border: 0;
+      padding: 0;
+    }
+    .home-side-panel {
+      margin-top: 24px;
+    }
+    .home-actions {
+      display: none;
+    }
+  }
 </style>

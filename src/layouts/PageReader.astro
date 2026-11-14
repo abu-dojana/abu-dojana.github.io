@@ -1,73 +1,389 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import { entryUrl, formatDate } from '../lib/content';
-import type { Entry, Page, SiteContent } from '../lib/types';
+import Gallery from '../components/Gallery.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { itemUrl, sectionUrl } from '../lib/content';
+import type { Detail, Link, Section, SectionItem, SiteContent } from '../lib/types';
 import '../styles/reader.css';
 
-interface Props { page: Page; site: SiteContent; entry?: Entry }
-const { page, entry } = Astro.props;
-const items = page.items.filter(item => item.published);
-const pageLabel = page.navigationLabel || page.title;
-const overviewUrl = `/pages/${page.slug}/`;
-const title = entry?.title || page.title;
-const summary = entry ? entry.summary : page.summary;
-const bodyHtml = entry ? entry.html : page.html;
-const hasBody = Boolean((entry ? entry.body : page.body).trim());
-const isExample = entry ? entry.example || page.example : page.example;
-const progressLabels = { planned: 'Planned', 'in-progress': 'In progress', completed: 'Completed', '': '' };
-const dateLabel = (item: Entry) => item.date ? `${formatDate(item.date)}${item.endDate ? ` — ${formatDate(item.endDate)}` : ''}` : item.endDate ? `Until ${formatDate(item.endDate)}` : '';
-const date = entry ? dateLabel(entry) : '';
-const detailLinks = entry?.links.filter(link => link.url.trim()) || [];
-const hasStaticRail = !entry || Boolean(entry.details.length || detailLinks.length);
+interface Props {
+  section: Section;
+  site: SiteContent;
+  item?: SectionItem;
+}
+
+const { section, site, item } = Astro.props;
+const items = section.items.filter(entry => entry.published);
+const sectionLabel = section.navigationLabel || section.title;
+const overviewUrl = sectionUrl(section);
+const title = item ? item.title : section.title;
+const summary = item ? item.summary : section.summary;
+const bodyHtml = item ? item.html : section.html;
+const hasBody = Boolean((item ? item.body : section.body).trim());
+
+const statusLabels: Record<string, string> = {
+  planned: 'Planned',
+  'in-progress': 'In progress',
+  completed: 'Completed',
+  archived: 'Archived',
+};
+
+const itemSubtitle = item
+  ? item.kind === 'experience'
+    ? [item.organization, item.employmentType, item.location].filter(Boolean).join(' · ')
+    : item.kind === 'education'
+      ? [item.institution, item.field, item.location, item.grade ? `Grade: ${item.grade}` : '']
+          .filter(Boolean)
+          .join(' · ')
+      : item.kind === 'project'
+        ? item.role
+        : item.subtitle
+  : '';
+
+const railDetails: Detail[] = item
+  ? [
+      ...(item.role ? [{ label: 'Role', value: item.role }] : []),
+      ...(item.organization ? [{ label: 'Organization', value: item.organization }] : []),
+      ...(item.employmentType ? [{ label: 'Type', value: item.employmentType }] : []),
+      ...(item.institution ? [{ label: 'Institution', value: item.institution }] : []),
+      ...(item.field ? [{ label: 'Field', value: item.field }] : []),
+      ...(item.grade ? [{ label: 'Grade', value: item.grade }] : []),
+      ...(item.location ? [{ label: 'Location', value: item.location }] : []),
+      ...(item.dateLabel ? [{ label: 'Timeline', value: item.dateLabel }] : []),
+      ...(item.status && statusLabels[item.status]
+        ? [{ label: 'Status', value: statusLabels[item.status] }]
+        : []),
+      ...item.details,
+    ]
+  : [];
+
+const railLinks: Link[] = item
+  ? [
+      ...(item.liveUrl ? [{ label: 'Live / Store', url: item.liveUrl }] : []),
+      ...(item.repoUrl ? [{ label: 'Source code', url: item.repoUrl }] : []),
+      ...(item.organizationUrl
+        ? [{ label: item.organization || 'Organization', url: item.organizationUrl }]
+        : []),
+      ...(item.institutionUrl
+        ? [{ label: item.institution || 'Institution', url: item.institutionUrl }]
+        : []),
+      ...item.links.filter(link => link.url.trim()),
+    ]
+  : [];
+
+const skillGroups = site.settings.skillGroups.filter(group => group.items.length > 0);
+const hasOverviewEntries =
+  section.type === 'skills' ? skillGroups.length > 0 || items.length > 0 : items.length > 0;
+const hasStaticRail = item
+  ? Boolean(railDetails.length || railLinks.length || item.tech.length)
+  : Boolean(hasOverviewEntries || hasBody);
 const hasHeadings = /<h[2-4](?:\s|>)/i.test(bodyHtml);
 const showRail = hasStaticRail || hasHeadings;
-const selectedIndex = entry ? items.findIndex(item => item.id === entry.id) : -1;
+
+const selectedIndex = item ? items.findIndex(candidate => candidate.id === item.id) : -1;
 const previous = selectedIndex > 0 ? items[selectedIndex - 1] : undefined;
 const next = selectedIndex >= 0 ? items[selectedIndex + 1] : undefined;
 ---
-<BaseLayout title={title} description={summary} active={page.id} wide>
+
+<BaseLayout title={title} description={summary} active={section.slug} wide>
   <div class:list={['reader-layout', { 'reader-layout--without-rail': !showRail }]} data-reader>
-    <a class="reader-skip" href="#reader-content">Skip item navigation</a>
-    <aside class="reader-sidebar" aria-label={`${pageLabel} navigation`}>
+    <a class="reader-skip" href="#reader-content">Skip section navigation</a>
+    <aside class="reader-sidebar" aria-label={`${sectionLabel} navigation`}>
       <details class="reader-tree" data-reader-sidebar open>
-        <summary><span>In this page</span><span class="reader-disclosure-icon" aria-hidden="true">⌄</span></summary>
+        <summary>
+          <span>In {sectionLabel}</span>
+          <span class="reader-disclosure-icon" aria-hidden="true">⌄</span>
+        </summary>
         <div class="reader-tree-body">
-          <p class="reader-sidebar-title">{pageLabel}</p>
-          <nav aria-label={`Items in ${pageLabel}`}>
-            <a class="reader-overview-link" href={overviewUrl} aria-current={!entry ? 'page' : undefined}><span aria-hidden="true">⌂</span><span>Overview</span></a>
-            {items.length > 0 && <ol class="reader-item-nav" role="list">{items.map(item => <li><a href={entryUrl(item)} aria-current={entry?.id === item.id ? 'page' : undefined}><span class="reader-item-title">{item.title}</span>{item.example && <span class="reader-item-example">Example</span>}</a></li>)}</ol>}
+          <p class="reader-sidebar-title">{sectionLabel}</p>
+          <nav aria-label={`Entries in ${sectionLabel}`}>
+            <a class="reader-overview-link" href={overviewUrl} aria-current={!item ? 'page' : undefined}>
+              <span aria-hidden="true">⌂</span>
+              <span>Overview</span>
+            </a>
+            {items.length > 0 && (
+              <ol class="reader-item-nav" role="list">
+                {items.map(entry => (
+                  <li>
+                    <a href={itemUrl(entry)} aria-current={item?.id === entry.id ? 'page' : undefined}>
+                      <span class="reader-item-title">{entry.title}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            )}
           </nav>
-          <a class="reader-all-pages" href="/pages/">All pages <span aria-hidden="true">↗</span></a>
+          <a class="reader-all-pages" href="/sections/">All sections <span aria-hidden="true">↗</span></a>
         </div>
       </details>
     </aside>
 
     <article class="reader-main" id="reader-content" tabindex="-1">
-      <nav class="reader-breadcrumb" aria-label="Breadcrumb"><ol role="list"><li><a href="/pages/">Pages</a></li>{entry ? <><li><a href={overviewUrl}>{pageLabel}</a></li><li><span aria-current="page">{entry.title}</span></li></> : <li><span aria-current="page">{pageLabel}</span></li>}</ol></nav>
+      <nav class="reader-breadcrumb" aria-label="Breadcrumb">
+        <ol role="list">
+          <li><a href="/sections/">Sections</a></li>
+          {item ? (
+            <>
+              <li><a href={overviewUrl}>{sectionLabel}</a></li>
+              <li><span aria-current="page">{item.title}</span></li>
+            </>
+          ) : (
+            <li><span aria-current="page">{sectionLabel}</span></li>
+          )}
+        </ol>
+      </nav>
+
       <header class="reader-heading">
-        <p class="reader-eyebrow">{entry ? pageLabel : 'Overview'}</p>
+        <p class="reader-eyebrow">{item ? sectionLabel : 'Section overview'}</p>
         <h1 id="reader-title">{title}</h1>
+        {itemSubtitle && <p class="reader-subtitle">{itemSubtitle}</p>}
         {summary && <p class="reader-summary">{summary}</p>}
-        {entry && (date || hasBody || entry.progress) && <div class="reader-byline">{date && <span>{date}</span>}{entry.progress && <span>{progressLabels[entry.progress]}</span>}{hasBody && <span>{entry.readingMinutes} min read</span>}</div>}
-        {isExample && <p class="reader-example"><strong>Example content</strong><span>Illustrative material, ready to make your own.</span></p>}
+        {item && (item.dateLabel || item.status || hasBody) && (
+          <div class="reader-byline">
+            {item.dateLabel && <span>{item.dateLabel}</span>}
+            {item.status && statusLabels[item.status] && <span>{statusLabels[item.status]}</span>}
+            {hasBody && <span>{item.readingMinutes} min read</span>}
+          </div>
+        )}
+        {item && (item.liveUrl || item.repoUrl) && (
+          <div class="reader-item-actions">
+            {item.liveUrl && (
+              <a class="button" href={item.liveUrl} target="_blank" rel="noopener noreferrer">
+                Live / Store <span aria-hidden="true">↗</span>
+              </a>
+            )}
+            {item.repoUrl && (
+              <a class="button secondary" href={item.repoUrl} target="_blank" rel="noopener noreferrer">
+                Source code <span aria-hidden="true">↗</span>
+              </a>
+            )}
+          </div>
+        )}
       </header>
 
-      {entry?.cover && <figure class="reader-cover"><img src={entry.cover} alt={entry.coverAlt || ''} width="1200" height="800" /></figure>}
+      {item && item.images.length > 0 && <Gallery images={item.images} title={item.title} />}
+
+      {item && item.highlights.length > 0 && (
+        <section class="reader-highlights" aria-labelledby="reader-highlights-heading">
+          <h2 id="reader-highlights-heading">Key highlights</h2>
+          <ul>
+            {item.highlights.map(highlight => <li>{highlight}</li>)}
+          </ul>
+        </section>
+      )}
+
       <div class="reader-body prose" data-reader-body set:html={bodyHtml}></div>
 
-      {!entry && items.length > 0 && <section class="reader-overview-items" id="reader-children" aria-labelledby="reader-items-heading"><div class="reader-items-heading"><h2 id="reader-items-heading">In this page</h2><span>{items.length} {items.length === 1 ? 'item' : 'items'}</span></div><ol role="list">{items.map(item => <li><a class="reader-child-link" href={entryUrl(item)}><span>{item.title}</span><span aria-hidden="true">→</span></a>{item.example && <span class="reader-list-example">Example</span>}{item.summary && <p>{item.summary}</p>}{dateLabel(item) && <span class="reader-child-date">{dateLabel(item)}</span>}</li>)}</ol></section>}
-      {!entry && !hasBody && !items.length && <p class="reader-empty">No items added yet.</p>}
+      {!item && section.type === 'projects' && items.length > 0 && (
+        <section class="reader-overview-items" id="reader-children" aria-labelledby="reader-items-heading">
+          <div class="reader-items-heading">
+            <h2 id="reader-items-heading">Projects</h2>
+            <span>{items.length} {items.length === 1 ? 'project' : 'projects'}</span>
+          </div>
+          <div class="reader-project-grid">
+            {items.map(project => <ProjectCard item={project} />)}
+          </div>
+        </section>
+      )}
 
-      {entry && entry.tags.length > 0 && <div class="reader-tags" aria-label="Tags">{entry.tags.map(tag => <span class="pill">#{tag}</span>)}</div>}
-      {entry && <nav class="reader-neighbours" aria-label="Adjacent items">{previous ? <a href={entryUrl(previous)}><small>Previous</small><span>← {previous.title}</span></a> : <a href={overviewUrl}><small>Back to</small><span>← {pageLabel}</span></a>}{next && <a class="reader-next" href={entryUrl(next)}><small>Next</small><span>{next.title} →</span></a>}</nav>}
+      {!item && (section.type === 'experience' || section.type === 'education') && items.length > 0 && (
+        <section class="reader-overview-items" id="reader-children" aria-labelledby="reader-items-heading">
+          <div class="reader-items-heading">
+            <h2 id="reader-items-heading">{section.type === 'experience' ? 'Roles' : 'Credentials'}</h2>
+            <span>{items.length} {items.length === 1 ? 'entry' : 'entries'}</span>
+          </div>
+          <ol class="reader-timeline" role="list">
+            {items.map(entry => (
+              <li class="reader-timeline-item">
+                <div class="reader-timeline-head">
+                  <h3><a href={itemUrl(entry)}>{entry.title} <span aria-hidden="true">→</span></a></h3>
+                  {entry.dateLabel && <span class="reader-child-date">{entry.dateLabel}</span>}
+                </div>
+                {entry.subtitle && (
+                  <p class="reader-timeline-sub">
+                    {entry.subtitle}
+                    {entry.location && ` · ${entry.location}`}
+                    {entry.grade && ` · Grade: ${entry.grade}`}
+                  </p>
+                )}
+                {entry.summary && <p class="reader-timeline-summary">{entry.summary}</p>}
+                {entry.highlights.length > 0 && (
+                  <ul class="reader-timeline-bullets">
+                    {entry.highlights.slice(0, 4).map(bullet => <li>{bullet}</li>)}
+                  </ul>
+                )}
+                {entry.tech.length > 0 && (
+                  <div class="reader-timeline-chips">
+                    {entry.tech.map(tech => <span class="pill">{tech}</span>)}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {!item && section.type === 'skills' && (
+        <section class="reader-overview-items" id="reader-children" aria-labelledby="reader-items-heading">
+          {skillGroups.length > 0 ? (
+            <>
+              <div class="reader-items-heading">
+                <h2 id="reader-items-heading">Technical skills</h2>
+                <span>{skillGroups.length} {skillGroups.length === 1 ? 'group' : 'groups'}</span>
+              </div>
+              <div class="reader-skill-groups">
+                {skillGroups.map(group => (
+                  <section class="reader-skill-group">
+                    <h3>{group.category}</h3>
+                    <div class="reader-skill-chips">
+                      {group.items.map(skill => <span class="pill">{skill}</span>)}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </>
+          ) : !hasBody && !items.length ? (
+            <p class="reader-empty">No skills listed yet.</p>
+          ) : null}
+        </section>
+      )}
+
+      {!item && section.type === 'general' && items.length > 0 && (
+        <section class="reader-overview-items" id="reader-children" aria-labelledby="reader-items-heading">
+          <div class="reader-items-heading">
+            <h2 id="reader-items-heading">Entries</h2>
+            <span>{items.length} {items.length === 1 ? 'entry' : 'entries'}</span>
+          </div>
+          <ol class="reader-general-list" role="list">
+            {items.map(entry => (
+              <li class:list={['reader-general-item', { 'reader-general-item--with-thumb': Boolean(entry.cover) }]}>
+                {entry.cover && (
+                  <a class="reader-general-thumb" href={itemUrl(entry)} tabindex="-1" aria-hidden="true">
+                    <img src={entry.cover} alt={entry.coverAlt} loading="lazy" width="320" height="200" />
+                  </a>
+                )}
+                <div class="reader-general-copy">
+                  <a class="reader-child-link" href={itemUrl(entry)}>
+                    <span>{entry.title}</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                  {entry.subtitle && <p class="reader-general-sub">{entry.subtitle}</p>}
+                  {entry.summary && <p class="reader-general-summary">{entry.summary}</p>}
+                  {(entry.dateLabel || entry.tags.length > 0) && (
+                    <div class="reader-general-meta">
+                      {entry.dateLabel && <span class="reader-child-date">{entry.dateLabel}</span>}
+                      {entry.tags.map(tag => <span class="pill">#{tag}</span>)}
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {!item && !hasBody && !items.length && section.type !== 'skills' && (
+        <p class="reader-empty">No entries published in this section yet.</p>
+      )}
+
+      {item && (item.tech.length > 0 || item.tags.length > 0) && (
+        <div class="reader-tags" aria-label="Technologies and tags">
+          {item.tech.map(tech => <span class="pill">{tech}</span>)}
+          {item.tags.map(tag => <span class="pill">#{tag}</span>)}
+        </div>
+      )}
+
+      {item && (
+        <nav class="reader-neighbours" aria-label="Adjacent entries">
+          {previous ? (
+            <a href={itemUrl(previous)}>
+              <small>Previous</small>
+              <span>← {previous.title}</span>
+            </a>
+          ) : (
+            <a href={overviewUrl}>
+              <small>Back to</small>
+              <span>← {sectionLabel}</span>
+            </a>
+          )}
+          {next && (
+            <a class="reader-next" href={itemUrl(next)}>
+              <small>Next</small>
+              <span>{next.title} →</span>
+            </a>
+          )}
+        </nav>
+      )}
     </article>
 
-    {showRail && <aside class="reader-rail" aria-label="Contents and details" data-reader-rail data-reader-static={hasStaticRail ? 'true' : 'false'}>
-      <section class="reader-rail-section reader-contents" data-reader-toc hidden><h2>Contents</h2><nav aria-label="Article contents"><ol role="list" data-reader-toc-list></ol></nav></section>
-      {!entry && <section class="reader-rail-section"><h2>Page details</h2><dl class="reader-detail-list"><div><dt>Items</dt><dd>{items.length}</dd></div></dl><div class="reader-page-jumps"><a href="#reader-title">Overview</a>{items.length > 0 && <a href="#reader-children">Items in this page</a>}</div></section>}
-      {entry && entry.details.length > 0 && <section class="reader-rail-section"><h2>Details</h2><dl class="reader-detail-list">{entry.details.map(detail => <div><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl></section>}
-      {detailLinks.length > 0 && <section class="reader-rail-section"><h2>Links</h2><ul class="reader-supporting-links" role="list">{detailLinks.map(link => <li><a href={link.url} rel="noopener noreferrer">{link.label}<span aria-hidden="true">↗</span></a></li>)}</ul></section>}
-    </aside>}
+    {showRail && (
+      <aside class="reader-rail" aria-label="Contents and details" data-reader-rail data-reader-static={hasStaticRail ? 'true' : 'false'}>
+        <section class="reader-rail-section reader-contents" data-reader-toc hidden>
+          <h2>Contents</h2>
+          <nav aria-label="Article contents">
+            <ol role="list" data-reader-toc-list></ol>
+          </nav>
+        </section>
+        {!item && (
+          <section class="reader-rail-section">
+            <h2>Section summary</h2>
+            <dl class="reader-detail-list">
+              <div>
+                <dt>{section.type === 'skills' ? 'Skill groups' : 'Entries'}</dt>
+                <dd>{section.type === 'skills' ? skillGroups.length : items.length}</dd>
+              </div>
+            </dl>
+            <div class="reader-page-jumps">
+              <a href="#reader-title">Overview</a>
+              {hasOverviewEntries && <a href="#reader-children">Browse entries</a>}
+            </div>
+          </section>
+        )}
+        {item && railDetails.length > 0 && (
+          <section class="reader-rail-section">
+            <h2>Details</h2>
+            <dl class="reader-detail-list">
+              {railDetails.map(detail => (
+                <div>
+                  <dt>{detail.label}</dt>
+                  <dd>{detail.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+        {item && item.tech.length > 0 && (
+          <section class="reader-rail-section">
+            <h2>Tech stack</h2>
+            <div class="reader-rail-chips">
+              {item.tech.map(tech => <span class="pill">{tech}</span>)}
+            </div>
+          </section>
+        )}
+        {railLinks.length > 0 && (
+          <section class="reader-rail-section">
+            <h2>Links</h2>
+            <ul class="reader-supporting-links" role="list">
+              {railLinks.map(link => (
+                <li>
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    <span>{link.label}</span>
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </aside>
+    )}
   </div>
 </BaseLayout>
-<script>import '../scripts/reader';</script>
+
+<script>
+  import '../scripts/reader';
+  import { initializeGalleries } from '../scripts/gallery';
+
+  initializeGalleries();
+  document.addEventListener('astro:page-load', initializeGalleries);
+</script>

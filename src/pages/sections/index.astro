@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getSite, getVisibleSections, isSectionVisible, sectionUrl } from '../../lib/content';
+
+const site = getSite();
+const sections = [
+  ...getVisibleSections(site),
+  ...(isSectionVisible(site.about, site) ? [site.about] : []),
+].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+---
+
+<BaseLayout
+  title="Sections"
+  description="Browse all published portfolio sections."
+  active="sections"
+>
+  <section class="container sections-directory">
+    <header class="page-heading">
+      <p class="eyebrow">Directory</p>
+      <h1>Sections</h1>
+      <p>Browse portfolio sections, projects, and background information.</p>
+    </header>
+
+    {sections.length > 0 ? (
+      <div class="page-directory-grid">
+        {sections.map((section, index) => {
+          const count =
+            section.type === 'skills'
+              ? site.settings.skillGroups.filter(g => g.items.length > 0).length
+              : section.items.filter(item => item.published).length;
+          const unit =
+            section.type === 'skills'
+              ? count === 1
+                ? 'group'
+                : 'groups'
+              : count === 1
+                ? 'entry'
+                : 'entries';
+          return (
+            <article class="page-directory-card">
+              <div class="page-card-meta">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+              </div>
+              <h3>
+                <a href={sectionUrl(section)}>
+                  {section.navigationLabel || section.title}
+                  <span aria-hidden="true">↗</span>
+                </a>
+              </h3>
+              {section.summary && <p>{section.summary}</p>}
+              <span class="page-card-count">
+                {count ? `${count} ${unit}` : 'Open section'}
+              </span>
+            </article>
+          );
+        })}
+        <article class="page-directory-card">
+          <div class="page-card-meta">
+            <span>CV</span>
+          </div>
+          <h3>
+            <a href="/cv/">
+              Curriculum Vitae
+              <span aria-hidden="true">↗</span>
+            </a>
+          </h3>
+          <p>Print-ready, ATS-friendly curriculum vitae.</p>
+          <span class="page-card-count">Open CV</span>
+        </article>
+      </div>
+    ) : (
+      <div class="empty-state">
+        <h2>No published sections yet.</h2>
+        <p>Published sections will appear here once content is added.</p>
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .sections-directory {
+    padding-bottom: 5rem;
+  }
+</style>

@@ -23,10 +23,15 @@ function initializeNavigation() {
     const rowGap = Number.parseFloat(getComputedStyle(nav).columnGap) || 0;
     const itemGap = Number.parseFloat(getComputedStyle(links).columnGap) || 0;
     const available = nav.clientWidth - more.getBoundingClientRect().width - rowGap;
-    const fitted = fitNavigationItems(allItems.map(item => ({
-      id: item.dataset.navItem!, width: item.getBoundingClientRect().width,
-      pinned: item.dataset.navPinned === 'true',
-    })), available, itemGap);
+    const fitted = fitNavigationItems(
+      allItems.map(item => ({
+        id: item.dataset.navItem!,
+        width: item.getBoundingClientRect().width,
+        pinned: item.dataset.navPinned === 'true',
+      })),
+      available,
+      itemGap,
+    );
     const visible = new Set(fitted.visible);
     for (const item of allItems) (visible.has(item.dataset.navItem!) ? links : overflow).append(item);
     overflow.hidden = fitted.overflow.length === 0;
@@ -34,7 +39,7 @@ function initializeNavigation() {
     const currentInMore = [...overflow.querySelectorAll('[aria-current="page"]')].length > 0;
     const moreIsCurrent = currentInMore || more.dataset.directoryCurrent === 'true';
     more.dataset.current = moreIsCurrent ? 'true' : 'false';
-    summary.setAttribute('aria-label', moreIsCurrent ? 'More pages, including the current page' : 'More pages');
+    summary.setAttribute('aria-label', moreIsCurrent ? 'More sections, including the current page' : 'More sections');
     nav.dataset.navEnhanced = 'true';
     delete nav.dataset.navMeasuring;
 
@@ -67,4 +72,7 @@ function initializeNavigation() {
 
 initializeNavigation();
 initializeThemePicker();
-document.addEventListener('astro:page-load', () => { initializeNavigation(); initializeThemePicker(); });
+document.addEventListener('astro:page-load', () => {
+  initializeNavigation();
+  initializeThemePicker();
+});

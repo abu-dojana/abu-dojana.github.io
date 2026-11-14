@@ -1,26 +1,33 @@
 ---
-import PageReader from '../../layouts/PageReader.astro';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getSite, formatDate } from '../../lib/content';
-import type { Entry, SiteContent } from '../../lib/types';
-import '../../styles/reader.css';
+import { getSite, itemUrl } from '../../lib/content';
 
 export function getStaticPaths() {
   const site = getSite();
-  return site.entries.filter(entry => entry.published).map(entry => ({ params: { slug: entry.slug }, props: { entry, site } }));
+  const seen = new Set<string>();
+  const paths: { params: { slug: string }; props: { destination: string } }[] = [];
+
+  for (const item of site.allItems) {
+    if (!item.published || seen.has(item.slug)) continue;
+    seen.add(item.slug);
+    paths.push({
+      params: { slug: item.slug },
+      props: { destination: itemUrl(item) },
+    });
+  }
+
+  // Preserve the legacy SpaceTabs permalink from before the content refactor.
+  const spacetabs = site.projects.find(project => project.published && project.slug === 'spacetabs');
+  const legacySlug = 'item-50000000-0000-4000-8000-000000000002';
+  if (spacetabs && !seen.has(legacySlug)) {
+    paths.push({
+      params: { slug: legacySlug },
+      props: { destination: itemUrl(spacetabs) },
+    });
+  }
+
+  return paths;
 }
-const { entry, site } = Astro.props as { entry: Entry; site: SiteContent };
-const owner = [site.about, ...site.pages].find(page => page.published && (page.id === entry.pageId || page.items.some(item => item.id === entry.id)));
-const progressLabels = { planned: 'Planned', 'in-progress': 'In progress', completed: 'Completed', '': '' };
-const date = entry.date ? `${formatDate(entry.date)}${entry.endDate ? ` — ${formatDate(entry.endDate)}` : ''}` : entry.endDate ? `Until ${formatDate(entry.endDate)}` : '';
+
+const { destination } = Astro.props as { destination: string };
+return Astro.redirect(destination, 301);
 ---
-{owner ? <PageReader page={owner} site={site} entry={entry} /> : <BaseLayout title={entry.title} description={entry.summary} wide>
-  <article class="reader-standalone">
-    <nav class="reader-breadcrumb" aria-label="Breadcrumb"><a href="/pages/">← All pages</a></nav>
-    <header class="reader-heading"><h1>{entry.title}</h1>{entry.summary && <p class="reader-summary">{entry.summary}</p>}{(date || entry.progress || entry.body.trim()) && <div class="reader-byline">{date && <span>{date}</span>}{entry.progress && <span>{progressLabels[entry.progress]}</span>}{entry.body.trim() && <span>{entry.readingMinutes} min read</span>}</div>}{entry.example && <p class="reader-example"><strong>Example content</strong><span>Illustrative material, ready to make your own.</span></p>}</header>
-    {entry.cover && <figure class="reader-cover"><img src={entry.cover} alt={entry.coverAlt || ''} width="1200" height="800" /></figure>}
-    <div class="prose" set:html={entry.html}></div>
-    {entry.details.length > 0 && <dl class="reader-detail-list reader-standalone-details">{entry.details.map(detail => <div><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>}
-    {entry.links.length > 0 && <div class="reader-standalone-links">{entry.links.map(link => <a href={link.url} rel="noopener noreferrer">{link.label} ↗</a>)}</div>}
-  </article>
-</BaseLayout>}

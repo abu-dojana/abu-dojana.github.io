@@ -12,230 +12,562 @@ media:
       - avif
       - svg
     rename: safe
+
 components:
-  record-id:
-    type: uuid
-    label: Record ID
-    description: Generated automatically. Keep this unchanged so links and saved CV selections continue working.
-    options:
-      editable: false
-      generate: false
-  slug:
-    type: string
-    label: URL name
-    required: true
-    description: Lowercase words separated by hyphens. Keep this unchanged after sharing a link.
-    pattern:
-      regex: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-      message: 'Use lowercase letters, numbers, and single hyphens between words.'
   link:
     type: object
     fields:
       - name: label
+        label: Link label
         type: string
         required: true
       - name: url
+        label: URL
         type: string
         required: true
-        description: 'A full https:// address or a path beginning with /.'
-  menu-home:
-    label: Home link
+        description: 'A full https:// address or a local path beginning with /.'
+  detail:
     type: object
     fields:
-      - name: id
-        component: record-id
       - name: label
+        label: Label
         type: string
         required: true
-        default: Home
-      - name: visible
-        type: boolean
-        default: true
-  menu-page:
-    label: Page menu override
+      - name: value
+        label: Value
+        type: string
+        required: true
+  skill-group:
     type: object
     fields:
-      - name: id
-        component: record-id
-      - name: label
+      - name: category
+        label: Group name (e.g. Languages, Frameworks, Tools)
         type: string
         required: true
-        label: Fallback menu label
-        description: Used only when the page has no short menu label of its own.
-      - name: target
-        label: Page
-        type: reference
-        required: true
-        options:
-          collection: pages
-          value: '{fields.id}'
-          label: '{fields.title}'
-      - name: visible
-        type: boolean
-        default: true
-    description: Optional existing-page label or visibility override. Deleted-page overrides are ignored. Page ordering is controlled in the page form.
-  menu-cv:
-    label: CV link
-    type: object
+      - name: items
+        label: Skills
+        type: string
+        list: true
+
+content:
+  - name: projects
+    label: Projects
+    type: collection
+    path: content/projects
+    format: yaml-frontmatter
+    filename: '{primary}.md'
+    view:
+      primary: title
+      fields:
+        - title
+        - status
+        - featured
+        - published
+        - order
+      sort:
+        - order
+        - startDate
+        - title
+      default:
+        sort: order
+        order: asc
     fields:
-      - name: id
-        component: record-id
-      - name: label
-        type: string
-        required: true
-        default: CV
-      - name: visible
-        type: boolean
-        default: true
-  menu-external:
-    label: External link
-    type: object
-    fields:
-      - name: id
-        component: record-id
-      - name: label
-        type: string
-        required: true
-      - name: target
-        label: Destination URL
-        type: string
-        required: true
-        description: 'A complete https:// address.'
-      - name: visible
-        type: boolean
-        default: true
-  page-item:
-    type: object
-    fields:
-      - name: id
-        component: record-id
       - name: title
-        label: Item title
+        label: Project title
         type: string
         required: true
       - name: slug
-        component: slug
-        label: Custom item URL name
+        label: Custom URL slug (optional)
+        type: string
         required: false
         description: >-
-          Optional. Leave blank for a stable automatic address. A custom value must be unique across all pages
-          and use lowercase words separated by hyphens.
+          Leave blank to use the filename automatically. Use lowercase letters,
+          numbers, and hyphens.
         pattern:
           regex: '^$|^[a-z0-9]+(?:-[a-z0-9]+)*$'
-          message: 'Leave blank or use lowercase letters, numbers, and single hyphens between words.'
+          message: Leave blank or use lowercase letters, numbers, and single hyphens between words.
       - name: summary
-        label: Short description
+        label: Short summary
         type: text
         required: false
-        description: Optional. A skill or hobby can be just a title; add detail when it helps.
-      - name: published
-        label: Publish this item
-        type: boolean
-        default: false
-        description: The parent page must also be published. Draft files are still readable in the public repository.
-      - name: example
-        label: This is example content
-        type: boolean
-        default: false
+        description: 1–3 sentences shown on project cards and at the top of the project page.
+      - name: images
+        label: Project images / screenshots
+        type: image
         description: >-
-          Examples are labeled and excluded from the real CV. A page marked as example also marks all of its
-          items as examples.
-      - name: tags
-        label: Tags
+          Upload or select one or more images. Drag to reorder; the first image
+          is used as the cover thumbnail.
+        options:
+          media: images
+          path: public/images/projects
+          multiple: true
+          unique: true
+      - name: role
+        label: Your role
+        type: string
+        description: e.g. Creator, Lead Developer, Backend Engineer
+      - name: tech
+        label: Tech stack / technologies
         type: string
         list: true
-      - name: date
-        label: Publication or start date
+        description: e.g. TypeScript, React, IndexedDB, Chrome Extensions API
+      - name: liveUrl
+        label: Live demo / Store URL
         type: string
-        description: 'Optional. Use YYYY-MM-DD, for example 2026-10-29.'
-        pattern: '^$|^\d{4}-\d{2}-\d{2}$'
-      - name: endDate
-        label: End date
+        description: Full https:// URL to the live app, Chrome Web Store, or deployment.
+      - name: repoUrl
+        label: Source code / GitHub URL
         type: string
-        description: Optional. Use YYYY-MM-DD.
-        pattern: '^$|^\d{4}-\d{2}-\d{2}$'
-      - name: progress
-        label: Progress
+        description: Full https:// URL to the repository.
+      - name: links
+        label: Additional links
+        component: link
+        list: true
+      - name: status
+        label: Status
         type: select
+        default: completed
         options:
           values:
             - name: ''
-              label: Not applicable
+              label: Not specified
             - name: planned
               label: Planned
             - name: in-progress
               label: In progress
             - name: completed
               label: Completed
-      - name: cover
-        label: Cover image
-        type: image
+            - name: archived
+              label: Archived
+      - name: startDate
+        label: Start date
+        type: date
         options:
-          media: images
-      - name: coverAlt
-        label: Image description
+          format: yyyy-MM-dd
+      - name: endDate
+        label: End date
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: highlights
+        label: Key highlights & achievements (also used as CV bullet points)
         type: string
-        description: Describe the image for someone who cannot see it.
-      - name: details
-        label: Additional details
-        type: object
         list: true
-        description: 'Add any labeled information, such as a role, location, organization, or equipment type.'
-        fields:
-          - name: label
-            type: string
-            required: true
-          - name: value
-            type: string
-            required: true
-      - name: links
-        label: Supporting links
-        component: link
+        description: Concise bullet points describing what you built and its impact.
+      - name: tags
+        label: Tags
+        type: string
         list: true
       - name: body
-        label: Details
+        label: Full project write-up
         type: rich-text
         options:
           format: markdown
           media: images
           switcher: true
-        description: 'Optional longer text, pictures, code, or a full story for this item.'
-      - name: cv
-        label: CV version
-        type: object
-        description: Optional concise CV presentation. The page name does not determine the CV section.
-        fields:
-          - name: include
-            label: Offer this item in the CV builder
-            type: boolean
-            default: false
-          - name: section
-            label: CV section
-            type: reference
-            options:
-              collection: cv-sections
-              value: '{fields.id}'
-              label: '{fields.title}'
-          - name: title
-            label: CV title
-            type: string
-            description: Leave blank to use the item title.
-          - name: subtitle
-            label: 'Role, organization, or subtitle'
-            type: string
-          - name: date
-            label: CV date or date range
-            type: string
-            description: For example September 2025 – Present. Keep planned qualifications accurately labeled.
-          - name: bullets
-            label: Concise CV bullets
-            type: string
-            list: true
-          - name: order
-            label: Default position within its section
-            type: number
-            default: 0
-content:
+      - name: featured
+        label: Feature on homepage
+        type: boolean
+        default: true
+      - name: showOnCv
+        label: Include on CV
+        type: boolean
+        default: true
+      - name: order
+        label: Display order (lower numbers appear first)
+        type: number
+        default: 0
+      - name: published
+        label: Published
+        type: boolean
+        default: true
+
+  - name: experience
+    label: Experience
+    type: collection
+    path: content/experience
+    format: yaml-frontmatter
+    filename: '{primary}.md'
+    view:
+      primary: title
+      fields:
+        - title
+        - organization
+        - startDate
+        - current
+        - published
+      sort:
+        - order
+        - startDate
+        - title
+      default:
+        sort: order
+        order: asc
+    fields:
+      - name: title
+        label: Role / Job title
+        type: string
+        required: true
+      - name: organization
+        label: Company / Organization
+        type: string
+        required: true
+      - name: organizationUrl
+        label: Organization website (optional)
+        type: string
+      - name: employmentType
+        label: Type
+        type: select
+        options:
+          values:
+            - name: ''
+              label: Not specified
+            - name: Full-time
+              label: Full-time
+            - name: Part-time
+              label: Part-time
+            - name: Internship
+              label: Internship
+            - name: Contract
+              label: Contract
+            - name: Freelance
+              label: Freelance
+            - name: Research
+              label: Research
+            - name: Volunteer
+              label: Volunteer
+      - name: location
+        label: Location
+        type: string
+        description: e.g. Dhaka, Bangladesh or Remote
+      - name: startDate
+        label: Start date
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: endDate
+        label: End date
+        type: date
+        description: Leave blank if this is your current role.
+        options:
+          format: yyyy-MM-dd
+      - name: current
+        label: I currently work here
+        type: boolean
+        default: false
+      - name: summary
+        label: Short overview
+        type: text
+      - name: highlights
+        label: Responsibilities & achievements (shown on page and CV)
+        type: string
+        list: true
+      - name: tech
+        label: Technologies / skills used
+        type: string
+        list: true
+      - name: images
+        label: Images (optional)
+        type: image
+        options:
+          media: images
+          multiple: true
+          unique: true
+      - name: links
+        label: Supporting links
+        component: link
+        list: true
+      - name: body
+        label: Additional details
+        type: rich-text
+        options:
+          format: markdown
+          media: images
+          switcher: true
+      - name: showOnCv
+        label: Include on CV
+        type: boolean
+        default: true
+      - name: order
+        label: Display order
+        type: number
+        default: 0
+      - name: published
+        label: Published
+        type: boolean
+        default: true
+
+  - name: education
+    label: Education
+    type: collection
+    path: content/education
+    format: yaml-frontmatter
+    filename: '{primary}.md'
+    view:
+      primary: degree
+      fields:
+        - degree
+        - institution
+        - startDate
+        - endDate
+        - published
+      sort:
+        - order
+        - startDate
+      default:
+        sort: order
+        order: asc
+    fields:
+      - name: degree
+        label: Degree / Qualification
+        type: string
+        required: true
+        description: e.g. B.Sc. in Computer Science & Engineering
+      - name: institution
+        label: Institution / University
+        type: string
+        required: true
+      - name: institutionUrl
+        label: Institution website (optional)
+        type: string
+      - name: field
+        label: Field of study / Major
+        type: string
+      - name: location
+        label: Location
+        type: string
+      - name: startDate
+        label: Start date
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: endDate
+        label: End or expected graduation date
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: current
+        label: Currently studying here
+        type: boolean
+        default: false
+      - name: grade
+        label: Grade / GPA / Honors (optional)
+        type: string
+      - name: summary
+        label: Summary
+        type: text
+      - name: highlights
+        label: Coursework, thesis, awards, or activities
+        type: string
+        list: true
+      - name: links
+        label: Links (certificates, thesis, etc.)
+        component: link
+        list: true
+      - name: body
+        label: Additional details
+        type: rich-text
+        options:
+          format: markdown
+          media: images
+          switcher: true
+      - name: showOnCv
+        label: Include on CV
+        type: boolean
+        default: true
+      - name: order
+        label: Display order
+        type: number
+        default: 0
+      - name: published
+        label: Published
+        type: boolean
+        default: true
+
+  - name: items
+    label: Custom section items
+    description: Add entries to any custom section you create (such as Blog, Research, Awards, or Anime).
+    type: collection
+    path: content/items
+    format: yaml-frontmatter
+    filename: '{primary}.md'
+    view:
+      primary: title
+      fields:
+        - title
+        - section
+        - date
+        - published
+      sort:
+        - order
+        - date
+        - title
+      default:
+        sort: order
+        order: asc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: slug
+        label: Custom URL slug (optional)
+        type: string
+        required: false
+        description: Leave blank to use the filename automatically.
+        pattern:
+          regex: '^$|^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          message: Leave blank or use lowercase letters, numbers, and single hyphens between words.
+      - name: section
+        label: Section
+        type: reference
+        required: true
+        description: Choose which section this item belongs to.
+        options:
+          collection: sections
+          value: '{fields.slug}'
+          label: '{fields.title}'
+      - name: summary
+        label: Short description
+        type: text
+      - name: images
+        label: Images
+        type: image
+        options:
+          media: images
+          multiple: true
+          unique: true
+      - name: subtitle
+        label: Subtitle / Role / Source (optional)
+        type: string
+      - name: date
+        label: Date
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: endDate
+        label: End date (optional)
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: tags
+        label: Tags
+        type: string
+        list: true
+      - name: details
+        label: Labeled details (e.g. Rating, Platform, Venue)
+        component: detail
+        list: true
+      - name: links
+        label: Links
+        component: link
+        list: true
+      - name: highlights
+        label: Key points / CV bullets (optional)
+        type: string
+        list: true
+      - name: body
+        label: Full content
+        type: rich-text
+        options:
+          format: markdown
+          media: images
+          switcher: true
+      - name: showOnCv
+        label: Include on CV
+        type: boolean
+        default: false
+      - name: order
+        label: Display order
+        type: number
+        default: 0
+      - name: published
+        label: Published
+        type: boolean
+        default: true
+
+  - name: sections
+    label: Sections & Menu Tabs
+    type: collection
+    path: content/sections
+    format: yaml-frontmatter
+    filename: '{fields.slug}.md'
+    view:
+      primary: title
+      fields:
+        - title
+        - slug
+        - type
+        - published
+        - showInNavigation
+        - order
+      sort:
+        - order
+        - title
+      default:
+        sort: order
+        order: asc
+    fields:
+      - name: title
+        label: Section title
+        type: string
+        required: true
+      - name: slug
+        label: URL slug
+        type: string
+        required: true
+        pattern:
+          regex: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          message: Use lowercase letters, numbers, and hyphens.
+      - name: type
+        label: Section type
+        type: select
+        required: true
+        default: general
+        description: >-
+          Built-in types display your Projects, Experience, Education, or Skills
+          automatically. Choose Custom section for any other topic (Blog,
+          Research, Anime, etc.).
+        options:
+          values:
+            - name: general
+              label: Custom section (uses Custom section items)
+            - name: projects
+              label: Projects (displays Projects collection)
+            - name: experience
+              label: Experience (displays Experience collection)
+            - name: education
+              label: Education (displays Education collection)
+            - name: skills
+              label: Skills (displays Skills from Profile settings)
+      - name: summary
+        label: Short description
+        type: text
+      - name: published
+        label: Published (uncheck to hide this section completely)
+        type: boolean
+        default: true
+      - name: showInNavigation
+        label: Show tab in top navigation menu
+        type: boolean
+        default: true
+        description: Overflow tabs automatically appear under More.
+      - name: navigationLabel
+        label: Short menu tab label (optional)
+        type: string
+        description: Leave blank to use the section title.
+      - name: order
+        label: Menu tab position (lower numbers come first)
+        type: number
+        default: 10
+      - name: body
+        label: Section introduction (optional)
+        type: rich-text
+        options:
+          format: markdown
+          media: images
+          switcher: true
+
   - name: about
     label: About
     type: file
@@ -246,106 +578,33 @@ content:
       delete: false
     fields:
       - name: title
-        label: Page heading
+        label: Heading
         type: string
         required: true
+        default: About
       - name: summary
         label: Short introduction
         type: text
+      - name: published
+        label: Show About page on the website
+        type: boolean
+        default: true
+      - name: showInNavigation
+        label: Show About in the menu
+        type: boolean
+        default: true
       - name: navigationLabel
-        label: Short menu label
+        label: Menu label
         type: string
         default: About
-        description: Optional. Leave blank to use About. The page and its menu link are permanent.
-      - name: example
-        label: This is example content
-        type: boolean
-        default: false
-        description: Marks this introduction and any items as examples. Turn off after replacing the starter with your own content.
       - name: body
         label: About you
         type: rich-text
         options:
           format: markdown
           media: images
-        description: Your introduction, pictures, and anything else you want visitors to know about you.
-      - name: items
-        label: Items
-        component: page-item
-        list:
-          collapsible:
-            collapsed: true
-            summary: '{fields.title}'
-        description: Optional additional items shown in About's left-hand list. About itself is always published; each item has its own publishing switch.
-  - name: pages
-    label: Pages
-    type: collection
-    path: content/pages
-    format: yaml-frontmatter
-    filename: '{fields.slug}.md'
-    view:
-      primary: title
-      fields:
-        - title
-        - navigationLabel
-        - published
-        - order
-      sort:
-        - order
-        - title
-      default:
-        sort: order
-        order: asc
-    fields:
-      - name: id
-        component: record-id
-      - name: title
-        label: Page name
-        type: string
-        required: true
-      - name: slug
-        component: slug
-      - name: summary
-        label: Short description
-        type: text
-      - name: published
-        label: Publish on the website
-        type: boolean
-        default: false
-      - name: example
-        label: This is example content
-        type: boolean
-        default: false
-        description: 'Marks the page and all of its items as examples, including in CV demos.'
-      - name: showInNavigation
-        label: Show this page in the menu
-        type: boolean
-        default: true
-        description: Published pages appear automatically. Additional links appear under More when needed. No separate menu setup is needed.
-      - name: navigationLabel
-        label: Short menu label
-        type: string
-        description: Optional. Leave blank to use the page name.
-      - name: order
-        label: Page position
-        type: number
-        default: 0
-        description: Lower numbers come first in the menu and page lists.
-      - name: body
-        label: Page introduction
-        type: rich-text
-        options:
-          format: markdown
-          media: images
-        description: Optional introduction shown in the main reading area when the page opens.
-      - name: items
-        label: Items
-        component: page-item
-        list:
-          collapsible:
-            collapsed: true
-            summary: '{fields.title}'
-        description: Add and edit the things that belong on this page. They appear in its left-hand item list in this order; selecting one opens its details in the main reading area.
+          switcher: true
+
   - name: site
     label: Profile & website settings
     type: file
@@ -353,91 +612,62 @@ content:
     format: json
     fields:
       - name: siteTitle
-        label: Website name
+        label: Website title
         type: string
         required: true
       - name: name
-        label: Your name for the CV
+        label: Full name (shown on homepage and CV)
         type: string
       - name: headline
         label: Professional headline
         type: string
+        description: e.g. Software Engineer · Full-Stack & Browser Extensions
       - name: bio
-        label: Short introduction / CV summary
+        label: Professional summary / CV profile
         type: text
+      - name: avatar
+        label: Profile photo (optional)
+        type: image
+        options:
+          media: images
       - name: email
         label: Public email
         type: string
-        description: Leave blank if you do not want it in the public repository or website.
-      - name: location
-        label: Public location
+      - name: phone
+        label: Public phone (optional — shown on CV if provided)
         type: string
-        description: Optional city or country. Do not enter a private address.
+      - name: location
+        label: Location (e.g. City, Country)
+        type: string
       - name: links
-        label: Public profile links
+        label: Profile links (GitHub, LinkedIn, etc.)
         component: link
         list: true
-      - name: skills
-        label: Skills you can demonstrate
-        type: string
+      - name: skillGroups
+        label: Skills by category (shown on Skills page and CV)
+        component: skill-group
         list: true
       - name: homeEyebrow
-        label: Homepage small heading
+        label: Homepage small label
         type: string
       - name: homeTitle
-        label: Homepage title
+        label: Homepage main heading
         type: text
       - name: homeDescription
         label: Homepage introduction
         type: text
       - name: footerNote
-        label: Footer note
+        label: Footer note (optional)
         type: string
-      - name: preview
-        label: Preview mode
+      - name: showCvInNavigation
+        label: Show CV link in top navigation
         type: boolean
         default: true
-        description: >-
-          Shows a starter notice and asks search engines not to index the site. Turn off after adding real
-          content.
-      - name: navigation
-        label: Optional extra navigation links
-        type: block
+      - name: externalLinks
+        label: Extra external navigation links (optional)
+        component: link
         list: true
-        blockKey: type
-        description: >-
-          Normal pages appear automatically. Use this list for Home, CV, and external links. Existing-page
-          overrides affect fallback labels or visibility, not page order. Overrides for deleted pages are ignored.
-          About has its own permanent link, edited in the About form.
-        blocks:
-          - name: home
-            label: Home
-            component: menu-home
-          - name: page
-            label: Existing page override
-            component: menu-page
-          - name: cv
-            label: CV
-            component: menu-cv
-          - name: external
-            label: External website
-            component: menu-external
-  - name: cv-sections
-    label: CV sections
-    type: collection
-    path: content/cv-sections
-    format: json
-    filename: '{fields.id}.json'
-    view:
-      primary: title
-    fields:
-      - name: id
-        component: record-id
-      - name: title
-        label: Section heading
-        type: string
-        required: true
-      - name: order
-        label: Default section position
-        type: number
-        default: 0
+      - name: noindex
+        label: Hide website from search engines (noindex)
+        type: boolean
+        default: false

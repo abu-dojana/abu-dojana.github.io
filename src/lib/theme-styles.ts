@@ -8,7 +8,6 @@ function declarations(theme: typeof themes[number]): string {
 const light = themes.find(theme => theme.id === defaultLightTheme)!;
 const dark = themes.find(theme => theme.id === defaultDarkTheme)!;
 
-// Render the palette rules with the document so System also works without JavaScript.
 export const themeStyles = [
   `:root{${declarations(light)}}`,
   `@media(prefers-color-scheme:dark){:root:not([data-theme]){${declarations(dark)}}}`,

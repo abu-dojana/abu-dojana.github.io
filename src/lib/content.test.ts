@@ -2,75 +2,84 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { entryUrl, formatDate, getSite, navHref, renderMarkdown, validateSite } from './content';
-import type { SiteContent } from './types';
+import { formatDate, formatDateRange, formatMonthYear, getSite, renderMarkdown } from './content';
 
-function fixture(): SiteContent {
-  return {
-    settings: { siteTitle: 'Test', name: '', headline: '', bio: '', email: '', location: '', links: [], skills: [], homeEyebrow: '', homeTitle: '', homeDescription: '', footerNote: '', preview: true, navigation: [] },
-    categories: [], pages: [], cvSections: [],
-    about: { id: '40000000-0000-4000-8000-000000000001', slug: 'about', title: 'About', summary: '', published: true, example: false, body: '', html: '', showInNavigation: true, navigationLabel: 'About', order: 99, layout: 'article', items: [] },
-    entries: [{ id: 'b92998cb-b934-4cde-a62c-7dbbfb8d90ca', slug: 'test-entry', title: 'Test entry', summary: '', categories: [], tags: [], published: true, example: false, featured: false, date: '', endDate: '', cover: '', coverAlt: '', links: [], details: [], progress: '', cv: { include: false, section: '', title: '', subtitle: '', date: '', bullets: [], order: 0 }, body: '', html: '', readingMinutes: 1 }],
-  };
-}
+describe('content parsing, formatting, and sanitization', () => {
+  it('accepts a minimal profile with no personal bio, links, or skills', () => {
+    const tmp = fs.realpathSync(os.tmpdir());
+    const root = fs.mkdtempSync(path.join(tmp, 'portfolio-min-'));
+    try {
+      fs.writeFileSync(path.join(root, 'site.json'), JSON.stringify({ siteTitle: 'Abu Dojana' }));
+      const site = getSite(root);
+      expect(site.settings.siteTitle).toBe('Abu Dojana');
+      expect(site.settings.name).toBe('Abu Dojana');
+      expect(site.settings.headline).toBe('');
+      expect(site.settings.skillGroups).toEqual([]);
+      expect(site.settings.noindex).toBe(false);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
 
-describe('shared content and flexible navigation', () => {
-  it('accepts a blank profile and a published entry without requiring a career category', () => {
-    const site = fixture();
-    expect(validateSite(site)).toBe(site);
-    expect(site.settings.name).toBe('');
-  });
-  it('supports a new subject and menu without adding a new content schema', () => {
-    const site = fixture();
-    const category = { id: '9ed6d05b-1489-436a-8c97-6cf5517a5089', title: 'Something entirely different', slug: 'something-different', description: '', order: 99 };
-    site.categories.push(category);
-    site.entries[0].categories.push(category.id);
-    const nav = { id: 'c1ea7cae-4f0e-48da-89b5-a5ce55e79f32', label: 'Wild things', type: 'category' as const, target: category.id, visible: true };
-    site.settings.navigation.push(nav);
-    expect(validateSite(site)).toBe(site);
-    expect(navHref(nav, site)).toBe('/categories/something-different/');
-    const url = entryUrl(site.entries[0]);
-    site.entries[0].categories = [category.id];
-    expect(entryUrl(site.entries[0])).toBe(url);
-  });
-  it('reports broken references before a build can replace the live site', () => {
-    const site = fixture();
-    site.entries[0].categories.push('00000000-0000-4000-8000-000000000000');
-    expect(() => validateSite(site)).toThrow(/missing category/);
-  });
-  it('rejects duplicate URLs even when content has different IDs', () => {
-    const site = fixture();
-    site.entries.push({ ...site.entries[0], id: '44335e20-1961-4f2f-b2bb-cc7b5f13bc57' });
-    expect(() => validateSite(site)).toThrow(/Duplicate URL slug/);
-  });
   it('keeps article markup and media while removing executable content', () => {
-    const result = renderMarkdown('## Hello\n\n<script>alert(1)</script>\n\n<a href="javascript:alert(1)">bad</a>\n\n![A trail](/images/trail.svg)');
-    expect(result).toContain('<h2>Hello</h2>');
-    expect(result).toContain('src="/images/trail.svg"');
+    const result = renderMarkdown(
+      '## Architecture\n\n<script>alert(1)</script>\n\n<a href="javascript:alert(1)">bad</a>\n\n![Diagram](/images/diagram.png)',
+    );
+    expect(result).toContain('<h2>Architecture</h2>');
+    expect(result).toContain('src="/images/diagram.png"');
+    expect(result).toContain('loading="lazy"');
     expect(result).not.toContain('<script');
     expect(result).not.toContain('javascript:');
   });
-  it('does not silently turn impossible dates into a different month', () => {
+
+  it('formats calendar dates and ranges accurately without wrapping invalid dates', () => {
     expect(formatDate('2026-02-31')).toBe('2026-02-31');
     expect(formatDate('2026-02-28')).toBe('Feb 28, 2026');
+    expect(formatMonthYear('2026-10-22')).toBe('Oct 2026');
+    expect(formatDateRange('2026-10-22', '2026-11-02')).toBe('Oct 2026 – Nov 2026');
+    expect(formatDateRange('2025-06-01', '', true)).toBe('Jun 2025 – Present');
   });
-  it('accepts cleared optional CMS controls without blocking publication', () => {
-    const temporaryDirectory = fs.realpathSync(os.tmpdir());
-    const root = fs.mkdtempSync(path.join(temporaryDirectory, 'notebook-content-test-'));
+
+  it('accepts cleared optional CMS controls, Date objects, and legacy skills arrays', () => {
+    const tmp = fs.realpathSync(os.tmpdir());
+    const root = fs.mkdtempSync(path.join(tmp, 'portfolio-cms-'));
     try {
-      fs.writeFileSync(path.join(root, 'site.json'), JSON.stringify({ siteTitle: 'A real updated name', name: 'A real profile', preview: false, navigation: null, skills: null, links: null }));
-      fs.mkdirSync(path.join(root, 'entries'));
-      const metadata = { id: 'a8151b62-cf87-4326-8b25-9cce43055aaf', slug: 'a-new-topic', title: 'A new topic', published: true, categories: null, tags: null, details: null, links: null, cv: null, progress: null, cover: null };
-      fs.writeFileSync(path.join(root, 'entries', 'a-new-topic.md'), `---\n${JSON.stringify(metadata)}\n---\nA new story.`);
+      fs.writeFileSync(
+        path.join(root, 'site.json'),
+        JSON.stringify({
+          siteTitle: 'Portfolio',
+          name: 'Ada Lovelace',
+          skills: ['TypeScript', 'Rust'],
+          links: null,
+          externalLinks: null,
+        }),
+      );
+      fs.mkdirSync(path.join(root, 'projects'));
+      fs.writeFileSync(
+        path.join(root, 'projects', 'engine.md'),
+        [
+          '---',
+          'title: Analytical Engine',
+          'startDate: 2026-10-22',
+          'endDate: 2026-11-02T00:00:00.000Z',
+          'images: null',
+          'tech: null',
+          'links: null',
+          'published: true',
+          '---',
+          'Notes on the design.',
+        ].join('\n'),
+      );
+
       const site = getSite(root);
-      expect(site.settings.name).toBe('A real profile');
-      expect(site.settings.preview).toBe(false);
-      expect(site.settings.navigation).toEqual([]);
-      expect(site.entries[0].categories).toEqual([]);
-      expect(site.entries[0].cv.include).toBe(false);
-      expect(site.entries[0].progress).toBe('');
+      expect(site.settings.skillGroups).toEqual([{ category: 'Skills', items: ['TypeScript', 'Rust'] }]);
+      expect(site.projects[0].date).toBe('2026-10-22');
+      expect(site.projects[0].endDate).toBe('2026-11-02');
+      expect(site.projects[0].images).toEqual([]);
+      expect(site.projects[0].tech).toEqual([]);
+      expect(site.projects[0].links).toEqual([]);
     } finally {
-      if (path.dirname(root) === temporaryDirectory && path.basename(root).startsWith('notebook-content-test-')) fs.rmSync(root, { recursive: true, force: true });
+      fs.rmSync(root, { recursive: true, force: true });
     }
   });
 });
