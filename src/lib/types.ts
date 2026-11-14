@@ -52,6 +52,7 @@ export interface SectionItem {
   subtitle: string;
   summary: string;
   images: string[];
+  files: string[];
   cover: string;
   coverAlt: string;
   date: string;

@@ -1,3 +1,4 @@
+import { formatFileLabel } from './content';
 import type { Link, SectionItem, SiteContent, SkillGroup } from './types';
 
 export interface CvEntry {
@@ -33,12 +34,32 @@ export interface CvModel {
   sections: CvGroup[];
 }
 
+function mergeCvLinks(primary: Link[], extra: Link[], files: string[]): Link[] {
+  const result: Link[] = [];
+  const seenUrls = new Set<string>();
+  const append = (link: Link) => {
+    const url = link.url.trim();
+    if (!url || seenUrls.has(url)) return;
+    seenUrls.add(url);
+    result.push({ label: link.label, url });
+  };
+  primary.forEach(append);
+  extra.forEach(append);
+  files.forEach((fileUrl, index) => {
+    append({ label: formatFileLabel(fileUrl, index, files.length, 'short'), url: fileUrl });
+  });
+  return result;
+}
+
 function projectToCvEntry(item: SectionItem): CvEntry {
-  const links: Link[] = [
-    ...(item.liveUrl ? [{ label: 'Live', url: item.liveUrl }] : []),
-    ...(item.repoUrl ? [{ label: 'Source', url: item.repoUrl }] : []),
-    ...item.links,
-  ];
+  const links = mergeCvLinks(
+    [
+      ...(item.liveUrl ? [{ label: 'Live', url: item.liveUrl }] : []),
+      ...(item.repoUrl ? [{ label: 'Source', url: item.repoUrl }] : []),
+    ],
+    item.links,
+    item.files,
+  );
   return {
     id: item.id,
     title: item.title,
@@ -53,12 +74,13 @@ function projectToCvEntry(item: SectionItem): CvEntry {
 }
 
 function experienceToCvEntry(item: SectionItem): CvEntry {
-  const links: Link[] = [
-    ...(item.organizationUrl
+  const links = mergeCvLinks(
+    item.organizationUrl
       ? [{ label: item.organization || 'Organization', url: item.organizationUrl }]
-      : []),
-    ...item.links,
-  ];
+      : [],
+    item.links,
+    item.files,
+  );
   return {
     id: item.id,
     title: item.title,
@@ -73,12 +95,13 @@ function experienceToCvEntry(item: SectionItem): CvEntry {
 }
 
 function educationToCvEntry(item: SectionItem): CvEntry {
-  const links: Link[] = [
-    ...(item.institutionUrl
+  const links = mergeCvLinks(
+    item.institutionUrl
       ? [{ label: item.institution || 'Institution', url: item.institutionUrl }]
-      : []),
-    ...item.links,
-  ];
+      : [],
+    item.links,
+    item.files,
+  );
   const gradeLabel = item.grade ? `Grade: ${item.grade}` : '';
   return {
     id: item.id,
@@ -103,7 +126,7 @@ function customItemToCvEntry(item: SectionItem): CvEntry {
     summary: item.highlights.length === 0 ? item.summary : '',
     bullets: item.highlights,
     tech: item.tech,
-    links: item.links,
+    links: mergeCvLinks([], item.links, item.files),
   };
 }
 

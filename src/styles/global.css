@@ -58,7 +58,7 @@ main{min-height:55vh}
 .prose :not(pre)>code{background:var(--surface-alt);padding:2px 5px;border-radius:3px;font-size:.85em}
 .prose table{border-collapse:collapse;display:block;overflow-x:auto}
 .prose th,.prose td{border-bottom:1px solid var(--line);padding:10px 15px;text-align:left}
-.prose img{border-radius:6px;margin-block:24px}
+.prose img{border:1px solid var(--line);border-radius:6px;margin-block:24px;background:var(--surface-alt)}
 .prose hr{border:0;border-top:1px solid var(--line);margin-block:35px}
 
 .page-directory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}

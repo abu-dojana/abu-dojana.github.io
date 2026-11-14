@@ -12,6 +12,7 @@ function makeItem(overrides: Partial<SectionItem> = {}): SectionItem {
     subtitle: '',
     summary: 'Concise summary.',
     images: [],
+    files: [],
     cover: '',
     coverAlt: '',
     date: '2026-10-01',
@@ -187,6 +188,40 @@ describe('ATS CV model generation', () => {
     const model = createCvModel(site);
     expect(model.sections).toHaveLength(1);
     expect(model.sections[0].entries.map(e => e.id)).toEqual(['p1']);
+  });
+
+  it('includes attached PDF files as CV entry links without duplicating explicit links', () => {
+    const customSection: Section = {
+      id: 'research',
+      slug: 'research',
+      title: 'Research Papers',
+      type: 'general',
+      summary: '',
+      published: true,
+      showInNavigation: true,
+      navigationLabel: 'Research',
+      order: 6,
+      body: '',
+      html: '',
+      items: [
+        makeItem({
+          id: 'paper-1',
+          kind: 'item',
+          sectionSlug: 'research',
+          title: 'Efficient Tab Graphs',
+          files: ['/files/tab-graphs.pdf', '/files/slides.pptx'],
+          links: [{ label: 'Slides Mirror', url: '/files/slides.pptx' }],
+          showOnCv: true,
+        }),
+      ],
+    };
+
+    const site = makeSite({ sections: [customSection] });
+    const model = createCvModel(site);
+    expect(model.sections[0].entries[0].links).toEqual([
+      { label: 'Slides Mirror', url: '/files/slides.pptx' },
+      { label: 'PDF 1', url: '/files/tab-graphs.pdf' },
+    ]);
   });
 
   it('reports ready=false when name is blank or no CV content exists', () => {

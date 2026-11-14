@@ -12,6 +12,18 @@ media:
       - avif
       - svg
     rename: safe
+  - name: documents
+    label: Documents & PDFs
+    input: public/files
+    output: /files
+    extensions:
+      - pdf
+      - doc
+      - docx
+      - ppt
+      - pptx
+      - zip
+    rename: safe
 
 components:
   link:
@@ -102,6 +114,17 @@ content:
           path: public/images/projects
           multiple: true
           unique: true
+      - name: files
+        label: PDFs & documents (papers, slides, reports)
+        type: file
+        description: >-
+          Upload one or more PDFs or documents (e.g. research paper, slides, or
+          specification). PDFs automatically get a Read PDF button and an inline
+          preview on the page.
+        options:
+          media: documents
+          multiple: true
+          unique: true
       - name: role
         label: Your role
         type: string
@@ -161,6 +184,11 @@ content:
       - name: body
         label: Full project write-up
         type: rich-text
+        description: >-
+          Write your full content here. To add an image between paragraphs,
+          place your cursor on a new line between paragraphs and click the Image
+          icon in the toolbar (or switch to Markdown mode and write
+          ![Caption](/images/your-image.png)).
         options:
           format: markdown
           media: images
@@ -273,6 +301,14 @@ content:
           media: images
           multiple: true
           unique: true
+      - name: files
+        label: PDFs & documents (optional)
+        type: file
+        description: Upload supporting PDFs or documents (e.g. publications, certificates, or letters).
+        options:
+          media: documents
+          multiple: true
+          unique: true
       - name: links
         label: Supporting links
         component: link
@@ -280,6 +316,10 @@ content:
       - name: body
         label: Additional details
         type: rich-text
+        description: >-
+          To add an image between paragraphs, place your cursor on a new line
+          between paragraphs and click the Image icon in the toolbar (or switch
+          to Markdown mode and write ![Caption](/images/your-image.png)).
         options:
           format: markdown
           media: images
@@ -360,6 +400,21 @@ content:
         label: Coursework, thesis, awards, or activities
         type: string
         list: true
+      - name: images
+        label: Images (optional)
+        type: image
+        options:
+          media: images
+          multiple: true
+          unique: true
+      - name: files
+        label: PDFs & documents (thesis, certificates, transcripts)
+        type: file
+        description: Upload your thesis PDF, certificates, or academic documents.
+        options:
+          media: documents
+          multiple: true
+          unique: true
       - name: links
         label: Links (certificates, thesis, etc.)
         component: link
@@ -367,6 +422,10 @@ content:
       - name: body
         label: Additional details
         type: rich-text
+        description: >-
+          To add an image between paragraphs, place your cursor on a new line
+          between paragraphs and click the Image icon in the toolbar (or switch
+          to Markdown mode and write ![Caption](/images/your-image.png)).
         options:
           format: markdown
           media: images
@@ -437,6 +496,17 @@ content:
           media: images
           multiple: true
           unique: true
+      - name: files
+        label: PDFs & documents (e.g. research paper PDF, slides)
+        type: file
+        description: >-
+          Upload one or more PDFs or documents (such as your paper PDF or
+          presentation slides). Uploaded PDFs are shown with a Read PDF button
+          and an inline reader on the item page.
+        options:
+          media: documents
+          multiple: true
+          unique: true
       - name: subtitle
         label: Subtitle / Role / Source (optional)
         type: string
@@ -469,6 +539,11 @@ content:
       - name: body
         label: Full content
         type: rich-text
+        description: >-
+          Write your full content here. To add an image between paragraphs,
+          place your cursor on a new line between paragraphs and click the Image
+          icon in the toolbar (or switch to Markdown mode and write
+          ![Caption](/images/your-image.png)).
         options:
           format: markdown
           media: images
@@ -563,6 +638,9 @@ content:
       - name: body
         label: Section introduction (optional)
         type: rich-text
+        description: >-
+          To add an image between paragraphs, place your cursor on a new line
+          between paragraphs and click the Image icon in the toolbar.
         options:
           format: markdown
           media: images
@@ -600,6 +678,10 @@ content:
       - name: body
         label: About you
         type: rich-text
+        description: >-
+          To add an image between paragraphs, place your cursor on a new line
+          between paragraphs and click the Image icon in the toolbar (or switch
+          to Markdown mode and write ![Caption](/images/your-image.png)).
         options:
           format: markdown
           media: images

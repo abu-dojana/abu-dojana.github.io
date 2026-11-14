@@ -24,6 +24,7 @@ const RESERVED_SECTION_SLUGS = new Set([
   'entries',
   'sections',
   'images',
+  'files',
   'explore',
   'categories',
   'robots.txt',
@@ -151,7 +152,7 @@ const aboutSchema = z.object({
   navigationLabel: text(),
 });
 
-const imagesField = z.preprocess(
+const mediaListField = z.preprocess(
   v => {
     if (v == null || v === '') return [];
     if (Array.isArray(v)) return v.map(item => (item == null ? '' : String(item).trim())).filter(Boolean);
@@ -165,7 +166,10 @@ const projectSchema = z.object({
   title: text().refine(v => v.length > 0, 'Project title is required'),
   slug: optionalSlugField,
   summary: text(),
-  images: imagesField,
+  images: mediaListField,
+  files: mediaListField,
+  pdf: urlString,
+  file: urlString,
   cover: urlString,
   coverAlt: text(),
   role: text(),
@@ -201,7 +205,10 @@ const experienceSchema = z.object({
   summary: text(),
   highlights: stringList,
   tech: stringList,
-  images: imagesField,
+  images: mediaListField,
+  files: mediaListField,
+  pdf: urlString,
+  file: urlString,
   cover: urlString,
   coverAlt: text(),
   links: list(linkSchema),
@@ -224,7 +231,10 @@ const educationSchema = z.object({
   grade: text(),
   summary: text(),
   highlights: stringList,
-  images: imagesField,
+  images: mediaListField,
+  files: mediaListField,
+  pdf: urlString,
+  file: urlString,
   cover: urlString,
   coverAlt: text(),
   links: list(linkSchema),
@@ -239,7 +249,10 @@ const customItemSchema = z.object({
   slug: optionalSlugField,
   section: text(),
   summary: text(),
-  images: imagesField,
+  images: mediaListField,
+  files: mediaListField,
+  pdf: urlString,
+  file: urlString,
   cover: urlString,
   coverAlt: text(),
   subtitle: text(),
@@ -300,8 +313,40 @@ function resolveSlug(explicitSlug: string, filename: string, title: string): str
   throw new Error(`Content error in ${filename}: Could not derive a valid URL slug.`);
 }
 
-function mergeImages(images: string[], cover: string): string[] {
-  return [...new Set([...images, ...(cover ? [cover] : [])])].filter(Boolean);
+function mergeMediaUrls(...inputs: Array<string | string[] | undefined>): string[] {
+  const urls: string[] = [];
+  for (const input of inputs) {
+    if (!input) continue;
+    if (Array.isArray(input)) urls.push(...input);
+    else urls.push(input);
+  }
+  return [...new Set(urls.map(u => u.trim()).filter(Boolean))];
+}
+
+/** Whether a URL or path points to a PDF document. */
+export function isPdfUrl(url: string): boolean {
+  return /\.pdf(?:$|[?#])/i.test(url.trim());
+}
+
+/** Format a concise, readable label for an attached document or PDF link. */
+export function formatFileLabel(fileUrl: string, index = 0, total = 1, mode: 'action' | 'short' = 'action'): string {
+  const isPdf = isPdfUrl(fileUrl);
+  if (mode === 'short') {
+    if (isPdf) return total > 1 ? `PDF ${index + 1}` : 'PDF';
+    return total > 1 ? `Document ${index + 1}` : 'Document';
+  }
+  if (isPdf) return total > 1 ? `Read PDF ${index + 1}` : 'Read PDF';
+  return total > 1 ? `Open document ${index + 1}` : 'Open document';
+}
+
+/** Extract a safe display filename from a file URL or local path. */
+export function fileDisplayName(fileUrl: string): string {
+  const raw = fileUrl.split('/').pop()?.split(/[?#]/)[0] || 'document.pdf';
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 function readingTime(body: string): number {
@@ -345,6 +390,7 @@ function createBaseItem(fields: {
   subtitle?: string;
   summary: string;
   images: string[];
+  files?: string[];
   coverAlt?: string;
   date: string;
   endDate: string;
@@ -382,6 +428,7 @@ function createBaseItem(fields: {
     subtitle: fields.subtitle || '',
     summary: fields.summary,
     images: fields.images,
+    files: fields.files || [],
     cover,
     coverAlt: fields.coverAlt || (cover ? `${fields.title} preview` : ''),
     date: fields.date,
@@ -549,7 +596,8 @@ export function getSite(root = path.resolve('content')): SiteContent {
         title: parsed.title,
         subtitle: parsed.role,
         summary: parsed.summary,
-        images: mergeImages(parsed.images, parsed.cover),
+        images: mergeMediaUrls(parsed.images, parsed.cover),
+        files: mergeMediaUrls(parsed.files, parsed.pdf, parsed.file),
         coverAlt: parsed.coverAlt,
         date: parsed.startDate,
         endDate: parsed.endDate,
@@ -582,7 +630,8 @@ export function getSite(root = path.resolve('content')): SiteContent {
         title: parsed.title,
         subtitle: [parsed.organization, parsed.employmentType].filter(Boolean).join(' · '),
         summary: parsed.summary,
-        images: mergeImages(parsed.images, parsed.cover),
+        images: mergeMediaUrls(parsed.images, parsed.cover),
+        files: mergeMediaUrls(parsed.files, parsed.pdf, parsed.file),
         coverAlt: parsed.coverAlt,
         date: parsed.startDate,
         endDate: parsed.endDate,
@@ -614,7 +663,8 @@ export function getSite(root = path.resolve('content')): SiteContent {
         title: parsed.degree,
         subtitle: [parsed.institution, parsed.field].filter(Boolean).join(' · '),
         summary: parsed.summary,
-        images: mergeImages(parsed.images, parsed.cover),
+        images: mergeMediaUrls(parsed.images, parsed.cover),
+        files: mergeMediaUrls(parsed.files, parsed.pdf, parsed.file),
         coverAlt: parsed.coverAlt,
         date: parsed.startDate,
         endDate: parsed.endDate,
@@ -654,7 +704,8 @@ export function getSite(root = path.resolve('content')): SiteContent {
         title: parsed.title,
         subtitle: parsed.subtitle,
         summary: parsed.summary,
-        images: mergeImages(parsed.images, parsed.cover),
+        images: mergeMediaUrls(parsed.images, parsed.cover),
+        files: mergeMediaUrls(parsed.files, parsed.pdf, parsed.file),
         coverAlt: parsed.coverAlt,
         date: parsed.date,
         endDate: parsed.endDate,

@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { afterEach, describe, expect, it } from 'vitest';
-import { getNavigation, getSite, isSectionVisible, itemUrl, navHref, sectionUrl } from './content';
+import { fileDisplayName, formatFileLabel, getNavigation, getSite, isPdfUrl, isSectionVisible, itemUrl, navHref, sectionUrl } from './content';
 
 const temporaryBase = fs.realpathSync(os.tmpdir());
 const fixtureRoots: string[] = [];
@@ -121,13 +121,26 @@ describe('collections, galleries, and flexible sections', () => {
       title: 'Steins;Gate',
       section: 'anime',
       summary: 'Sci-fi thriller series.',
+      files: ['/files/review-notes.pdf'],
       details: [{ label: 'Rating', value: '10/10' }],
+      published: true,
+    });
+    writeMd(root, 'items', 'research-note', {
+      title: 'Systems Paper',
+      section: 'anime',
+      pdf: '/files/paper.pdf',
       published: true,
     });
 
     const site = getSite(root);
     const animeSection = site.sections.find(s => s.slug === 'anime')!;
-    expect(animeSection.items).toHaveLength(1);
+    expect(animeSection.items).toHaveLength(2);
+    expect(animeSection.items[0].files).toEqual(['/files/review-notes.pdf']);
+    expect(animeSection.items[1].files).toEqual(['/files/paper.pdf']);
+    expect(isPdfUrl('/files/paper.pdf')).toBe(true);
+    expect(isPdfUrl('/files/slides.pptx')).toBe(false);
+    expect(formatFileLabel('/files/paper.pdf', 0, 1, 'action')).toBe('Read PDF');
+    expect(fileDisplayName('/files/my%20paper.pdf')).toBe('my paper.pdf');
     expect(itemUrl(animeSection.items[0])).toBe('/anime/steins-gate/');
     expect(sectionUrl(animeSection)).toBe('/anime/');
 
@@ -186,6 +199,10 @@ describe('collections, galleries, and flexible sections', () => {
     writeMd(reservedRoot, 'sections', 'cv-copy', { title: 'CV Copy', slug: 'cv', type: 'general' });
     expect(() => getSite(reservedRoot)).toThrow(/reserved URL slug/i);
 
+    const filesReservedRoot = createFixture();
+    writeMd(filesReservedRoot, 'sections', 'files-copy', { title: 'Files', slug: 'files', type: 'general' });
+    expect(() => getSite(filesReservedRoot)).toThrow(/reserved URL slug/i);
+
     const dupTypeRoot = createFixture();
     writeMd(dupTypeRoot, 'sections', 'p1', { title: 'Projects 1', slug: 'projects-1', type: 'projects' });
     writeMd(dupTypeRoot, 'sections', 'p2', { title: 'Projects 2', slug: 'projects-2', type: 'projects' });
@@ -210,6 +227,8 @@ describe('collections, galleries, and flexible sections', () => {
     };
 
     const mediaNames = new Set(config.media.map(m => m.name));
+    expect(mediaNames.has('images')).toBe(true);
+    expect(mediaNames.has('documents')).toBe(true);
     const componentNames = new Set(Object.keys(config.components));
     const collectionNames = new Set(config.content.map(c => c.name));
 

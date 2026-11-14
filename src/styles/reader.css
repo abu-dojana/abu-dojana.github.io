@@ -43,6 +43,30 @@
 .reader-body>h2:first-child,.reader-body>h3:first-child{margin-top:0}
 .reader-body p:last-child{margin-bottom:0}
 .reader-body table,.reader-body pre{max-width:100%}
+.reader-body img[role=button]{cursor:zoom-in;transition:border-color .15s}
+.reader-body img[role=button]:hover{border-color:var(--accent)}
+
+.reader-pdf-preview{margin:0 0 28px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden}
+.reader-pdf-preview>summary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 18px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none;background:var(--surface-alt)}
+.reader-pdf-preview>summary::-webkit-details-marker{display:none}
+.reader-pdf-toggle{font-size:16px;line-height:1;color:var(--muted);transition:transform .15s}
+.reader-pdf-preview[open] .reader-pdf-toggle{transform:rotate(180deg)}
+.reader-pdf-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:9px 18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font:11px var(--mono);color:var(--muted)}
+.reader-pdf-links{display:flex;gap:14px;flex-wrap:wrap}
+.reader-pdf-links a{color:var(--accent)}
+.reader-pdf-links a:hover{text-decoration:underline;text-underline-offset:3px}
+.reader-pdf-frame-wrap{background:var(--bg)}
+.reader-pdf-frame-wrap iframe{display:block;width:100%;height:min(76vh,700px);border:0}
+
+.reader-inline-lightbox{max-width:min(94vw,1200px);max-height:92vh;width:100%;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);box-shadow:0 24px 64px #0006}
+.reader-inline-lightbox::backdrop{background:#000b}
+.reader-inline-lightbox-frame{display:flex;flex-direction:column;max-height:92vh}
+.reader-inline-lightbox-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.reader-inline-lightbox-caption{font-size:13px;font-weight:500;color:var(--muted);overflow-wrap:anywhere}
+.reader-inline-lightbox-close{display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);font-size:20px;line-height:1;padding:0}
+.reader-inline-lightbox-close:hover{border-color:var(--accent);color:var(--accent)}
+.reader-inline-lightbox-stage{display:flex;align-items:center;justify-content:center;padding:16px;min-height:0;overflow:hidden;background:var(--bg)}
+.reader-inline-lightbox-stage img{max-width:100%;max-height:calc(92vh - 96px);object-fit:contain;margin:0;border:0;border-radius:0}
 
 .reader-overview-items{margin-top:32px;scroll-margin-top:30px}
 .reader-items-heading{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
@@ -119,6 +143,7 @@
   .reader-skip{left:235px}
 }
 @media(max-width:760px){
+  .reader-pdf-frame-wrap iframe{height:480px}
   .reader-layout,.reader-layout--without-rail{display:block;width:calc(100% - 36px);padding-top:20px;min-height:0}
   .reader-sidebar{position:static;max-height:none;overflow:visible;border:1px solid var(--line);border-radius:6px;padding:0;margin-bottom:24px;background:var(--surface)}
   .reader-tree>summary{display:flex;justify-content:space-between;align-items:center;gap:20px;list-style:none;cursor:pointer;padding:13px 15px;font-size:12px;font-weight:600}
@@ -140,10 +165,10 @@
   .reader-neighbours{gap:15px}
   .reader-neighbours>a{font-size:11px}
 }
-@media(prefers-reduced-motion:reduce){.reader-disclosure-icon{transition:none}}
+@media(prefers-reduced-motion:reduce){.reader-disclosure-icon,.reader-pdf-toggle{transition:none}}
 @media print{
   .reader-layout,.reader-layout--without-rail{display:block;width:100%;padding:0;margin:0;min-height:0;max-width:none}
-  .reader-sidebar,.reader-rail,.reader-breadcrumb,.reader-skip,.reader-neighbours,.reader-item-actions{display:none!important}
+  .reader-sidebar,.reader-rail,.reader-breadcrumb,.reader-skip,.reader-neighbours,.reader-item-actions,.reader-pdf-preview,.reader-inline-lightbox{display:none!important}
   .reader-main{max-width:none;padding:0}
   .reader-heading h1{font-size:26pt}
   .reader-summary{font-size:11pt}

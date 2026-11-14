@@ -1,3 +1,64 @@
+function setupInlineImageLightbox(reader: HTMLElement, body: HTMLElement) {
+  const images = Array.from(body.querySelectorAll<HTMLImageElement>('img')).filter(img => !img.closest('a'));
+  if (!images.length) return;
+
+  const dialog = document.createElement('dialog');
+  dialog.className = 'reader-inline-lightbox';
+  dialog.setAttribute('aria-label', 'Inline image viewer');
+
+  const frame = document.createElement('div');
+  frame.className = 'reader-inline-lightbox-frame';
+
+  const bar = document.createElement('div');
+  bar.className = 'reader-inline-lightbox-bar';
+
+  const caption = document.createElement('span');
+  caption.className = 'reader-inline-lightbox-caption';
+
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.className = 'reader-inline-lightbox-close';
+  closeButton.setAttribute('aria-label', 'Close image viewer');
+  closeButton.textContent = '×';
+  closeButton.addEventListener('click', () => dialog.close());
+
+  bar.append(caption, closeButton);
+
+  const stage = document.createElement('div');
+  stage.className = 'reader-inline-lightbox-stage';
+
+  const fullImg = document.createElement('img');
+  stage.append(fullImg);
+  frame.append(bar, stage);
+  dialog.append(frame);
+  reader.append(dialog);
+
+  dialog.addEventListener('click', event => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  const openLightbox = (img: HTMLImageElement) => {
+    fullImg.src = img.currentSrc || img.src;
+    fullImg.alt = img.alt;
+    caption.textContent = img.title || img.alt || 'Image preview';
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+  };
+
+  images.forEach(img => {
+    img.tabIndex = 0;
+    img.setAttribute('role', 'button');
+    img.setAttribute('aria-label', img.alt ? `Enlarge image: ${img.alt}` : 'Enlarge inline image');
+    img.addEventListener('click', () => openLightbox(img));
+    img.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openLightbox(img);
+      }
+    });
+  });
+}
+
 function initializeReaders() {
   document.querySelectorAll<HTMLElement>('[data-reader]').forEach(reader => {
     if (reader.dataset.readerInitialized) return;
@@ -12,6 +73,7 @@ function initializeReaders() {
     }
 
     const body = reader.querySelector<HTMLElement>('[data-reader-body]');
+    if (body) setupInlineImageLightbox(reader, body);
     const contents = reader.querySelector<HTMLElement>('[data-reader-toc]');
     const list = reader.querySelector<HTMLOListElement>('[data-reader-toc-list]');
     const rail = reader.querySelector<HTMLElement>('[data-reader-rail]');

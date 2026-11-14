@@ -16,7 +16,8 @@
    - **Sections & Menu Tabs** — create, reorder, show/hide, or delete menu sections.
    - **About** — your personal introduction page.
    - **Profile & website settings** — name, headline, bio, contact links, skills, and homepage copy.
-   - **Images** — uploaded media stored in `public/images/`.
+   - **Images** — uploaded photos/screenshots stored in `public/images/`.
+   - **Documents & PDFs** — uploaded PDFs and documents (papers, slides, certificates) stored in `public/files/`.
 
 Every save in Pages CMS commits directly to GitHub, and GitHub Actions automatically validates, tests, builds, and deploys the website.
 
@@ -35,6 +36,32 @@ Every save in Pages CMS commits directly to GitHub, and GitHub Actions automatic
 5. Keep **Published** enabled (and **Include on CV** / **Feature on homepage** enabled if desired) and click **Save**.
 
 Your project appears on `/projects/<project-name>/`, on the Projects page, and on your CV.
+
+---
+
+## 2b. Upload PDFs (research papers, slides, thesis) & add images between paragraphs
+
+### Attach PDFs or documents to any item
+
+1. Open any entry under **Custom section items**, **Projects**, **Experience**, or **Education**.
+2. Scroll to **PDFs & documents** and upload one or more `.pdf` (or `.doc`, `.docx`, `.ppt`, `.pptx`, `.zip`) files from your computer.
+3. Save the entry.
+   - On the published page, visitors get a **Read PDF ↗** button at the top, a direct download link in the **Links** sidebar, and an expandable **Document preview (PDF)** viewer right inside the page.
+   - If **Include on CV** is enabled, the PDF link is also added automatically to your CV entry.
+
+### Add images between paragraphs in "Full project write-up" / "Full content"
+
+1. Inside the **Full project write-up** or **Full content** rich-text editor, press Enter to place your cursor on a blank line between any two paragraphs.
+2. Click the **Image** button in the editor toolbar and upload or pick an image from **Images**.
+   - Alternatively, click the **Markdown switcher** icon in the toolbar and write:
+     ```markdown
+     Paragraph before the image.
+
+     ![Caption describing the figure](/images/diagram.png)
+
+     Paragraph after the image.
+     ```
+3. On the website, visitors can click any inline image between paragraphs to enlarge it in a fullscreen lightbox.
 
 ---
 

@@ -2,7 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import Gallery from '../components/Gallery.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import { itemUrl, sectionUrl } from '../lib/content';
+import { fileDisplayName, formatFileLabel, isPdfUrl, itemUrl, sectionUrl } from '../lib/content';
 import type { Detail, Link, Section, SectionItem, SiteContent } from '../lib/types';
 import '../styles/reader.css';
 
@@ -57,7 +57,10 @@ const railDetails: Detail[] = item
     ]
   : [];
 
-const railLinks: Link[] = item
+const itemFiles = item ? item.files : [];
+const pdfFiles = itemFiles.filter(isPdfUrl);
+
+const rawRailLinks: Link[] = item
   ? [
       ...(item.liveUrl ? [{ label: 'Live / Store', url: item.liveUrl }] : []),
       ...(item.repoUrl ? [{ label: 'Source code', url: item.repoUrl }] : []),
@@ -67,9 +70,21 @@ const railLinks: Link[] = item
       ...(item.institutionUrl
         ? [{ label: item.institution || 'Institution', url: item.institutionUrl }]
         : []),
+      ...itemFiles.map((url, index) => ({
+        label: formatFileLabel(url, index, itemFiles.length, 'action'),
+        url,
+      })),
       ...item.links.filter(link => link.url.trim()),
     ]
   : [];
+
+const seenRailUrls = new Set<string>();
+const railLinks: Link[] = rawRailLinks.filter(link => {
+  const key = link.url.trim();
+  if (!key || seenRailUrls.has(key)) return false;
+  seenRailUrls.add(key);
+  return true;
+});
 
 const skillGroups = site.settings.skillGroups.filter(group => group.items.length > 0);
 const hasOverviewEntries =
@@ -145,7 +160,7 @@ const next = selectedIndex >= 0 ? items[selectedIndex + 1] : undefined;
             {hasBody && <span>{item.readingMinutes} min read</span>}
           </div>
         )}
-        {item && (item.liveUrl || item.repoUrl) && (
+        {item && (item.liveUrl || item.repoUrl || itemFiles.length > 0) && (
           <div class="reader-item-actions">
             {item.liveUrl && (
               <a class="button" href={item.liveUrl} target="_blank" rel="noopener noreferrer">
@@ -157,11 +172,46 @@ const next = selectedIndex >= 0 ? items[selectedIndex + 1] : undefined;
                 Source code <span aria-hidden="true">↗</span>
               </a>
             )}
+            {itemFiles.map((fileUrl, index) => (
+              <a
+                class:list={['button', { secondary: Boolean(item.liveUrl || index > 0) }]}
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {formatFileLabel(fileUrl, index, itemFiles.length, 'action')} <span aria-hidden="true">↗</span>
+              </a>
+            ))}
           </div>
         )}
       </header>
 
       {item && item.images.length > 0 && <Gallery images={item.images} title={item.title} />}
+
+      {item && pdfFiles.map((pdfUrl, index) => (
+        <details class="reader-pdf-preview" open={index === 0}>
+          <summary>
+            <span>{pdfFiles.length > 1 ? `Document preview (${index + 1} of ${pdfFiles.length})` : 'Document preview (PDF)'}</span>
+            <span class="reader-pdf-toggle" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="reader-pdf-body">
+            <div class="reader-pdf-toolbar">
+              <span>{fileDisplayName(pdfUrl)}</span>
+              <div class="reader-pdf-links">
+                <a href={pdfUrl} target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>
+                <a href={pdfUrl} download>Download ↓</a>
+              </div>
+            </div>
+            <div class="reader-pdf-frame-wrap">
+              <iframe
+                src={pdfUrl}
+                title={`${item.title} PDF preview ${index + 1}`}
+                loading="lazy"
+              ></iframe>
+            </div>
+          </div>
+        </details>
+      ))}
 
       {item && item.highlights.length > 0 && (
         <section class="reader-highlights" aria-labelledby="reader-highlights-heading">
@@ -269,9 +319,10 @@ const next = selectedIndex >= 0 ? items[selectedIndex + 1] : undefined;
                   </a>
                   {entry.subtitle && <p class="reader-general-sub">{entry.subtitle}</p>}
                   {entry.summary && <p class="reader-general-summary">{entry.summary}</p>}
-                  {(entry.dateLabel || entry.tags.length > 0) && (
+                  {(entry.dateLabel || entry.tags.length > 0 || entry.files.length > 0) && (
                     <div class="reader-general-meta">
                       {entry.dateLabel && <span class="reader-child-date">{entry.dateLabel}</span>}
+                      {entry.files.some(isPdfUrl) && <span class="pill">PDF</span>}
                       {entry.tags.map(tag => <span class="pill">#{tag}</span>)}
                     </div>
                   )}
