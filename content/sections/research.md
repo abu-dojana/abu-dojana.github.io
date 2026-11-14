@@ -4,5 +4,5 @@ slug: research
 type: general
 published: true
 showInNavigation: true
-order: 10
+order: 5
 ---
