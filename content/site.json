@@ -1,19 +1,19 @@
 {
   "siteTitle": "Abu Dojana",
   "name": "Abu Dojana",
-  "headline": "",
-  "bio": "",
-  "avatar": "",
-  "email": "",
-  "phone": "",
-  "location": "",
-  "links": [],
-  "skillGroups": [],
+  "links": [
+    {
+      "label": "Github",
+      "url": "github.com/abu-dojana"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/abu-dojana/"
+    }
+  ],
   "homeEyebrow": "Portfolio",
   "homeTitle": "Abu Dojana",
   "homeDescription": "Software projects, technical experience, and selected work.",
-  "footerNote": "",
   "showCvInNavigation": true,
-  "noindex": false,
-  "externalLinks": []
+  "noindex": false
 }
