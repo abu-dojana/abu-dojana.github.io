@@ -19,6 +19,8 @@ summary: >-
   achieving an impressive 95.5% accuracy on eight different emotion categories.
   This technique can be employed effectively in real time emotion detection and
   identification in upcoming HCI systems.
+files:
+  - /files/q1ssmultimodalemorecognitionpaperieee.pdf
 date: 2026-11-14
 endDate: 2026-11-14
 showOnCv: true
