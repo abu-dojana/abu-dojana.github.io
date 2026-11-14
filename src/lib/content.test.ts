@@ -9,11 +9,18 @@ describe('content parsing, formatting, and sanitization', () => {
     const tmp = fs.realpathSync(os.tmpdir());
     const root = fs.mkdtempSync(path.join(tmp, 'portfolio-min-'));
     try {
-      fs.writeFileSync(path.join(root, 'site.json'), JSON.stringify({ siteTitle: 'Abu Dojana' }));
+      fs.writeFileSync(
+        path.join(root, 'site.json'),
+        JSON.stringify({
+          siteTitle: 'Abu Dojana',
+          links: [{ label: 'Github', url: 'https://github.com/abu-dojana' }],
+        }),
+      );
       const site = getSite(root);
       expect(site.settings.siteTitle).toBe('Abu Dojana');
       expect(site.settings.name).toBe('Abu Dojana');
       expect(site.settings.headline).toBe('');
+      expect(site.settings.links).toEqual([{ label: 'Github', url: 'https://github.com/abu-dojana' }]);
       expect(site.settings.skillGroups).toEqual([]);
       expect(site.settings.noindex).toBe(false);
     } finally {
