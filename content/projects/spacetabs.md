@@ -1,28 +1,24 @@
 ---
 title: SpaceTabs - Tab Manager
 summary: >-
-  I built this Local-first, unlimited tab & workspace manager with Google
-  Drive sync.
+  I built this Local-first, unlimited tab & workspace manager with Google Drive
+  sync.
 
-  Tired of tab overload slowing down your browser and devouring your
-  computer's RAM? SpaceTabs brings order to your digital life with unlimited
-  spaces, native tab suspension, and complete local privacy — 100% free with
-  no paywalls or artificial limits.
+  Tired of tab overload slowing down your browser and devouring your computer's
+  RAM? SpaceTabs brings order to your digital life with unlimited spaces, native
+  tab suspension, and complete local privacy — 100% free with no paywalls or
+  artificial limits.
 
   Whether you're researching, coding, studying, or managing client projects,
   SpaceTabs keeps your browser organized, responsive, and distraction-free.
 images:
   - /images/projects/spacetabs-1.png
   - /images/projects/spacetabs-2.png
-role: ''
-tech: []
 liveUrl: https://chromewebstore.google.com/detail/aiajlcdplbpcfohgekcgafcpghgjojhh
-repoUrl: ''
-links: []
+repoUrl: https://github.com/abu-dojana/SpaceTabs-TabManager
 status: completed
 startDate: 2026-10-22
 endDate: 2026-11-02
-highlights: []
 tags:
   - data
   - learning
