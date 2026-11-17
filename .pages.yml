@@ -443,9 +443,120 @@ content:
         type: boolean
         default: true
 
+  - name: research
+    label: Research
+    description: Research papers, publications, preprints, and academic projects.
+    type: collection
+    path: content/research
+    format: yaml-frontmatter
+    filename: '{primary}.md'
+    view:
+      primary: title
+      fields:
+        - title
+        - subtitle
+        - date
+        - showOnCv
+        - published
+      sort:
+        - order
+        - date
+        - title
+      default:
+        sort: order
+        order: asc
+    fields:
+      - name: title
+        label: Paper / Research title
+        type: string
+        required: true
+      - name: slug
+        label: Custom URL slug (optional)
+        type: string
+        required: false
+        description: Leave blank to use the filename automatically.
+        pattern:
+          regex: '^$|^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          message: Leave blank or use lowercase letters, numbers, and single hyphens between words.
+      - name: subtitle
+        label: Authors / Venue / Journal (optional)
+        type: string
+        description: e.g. First Author · IEEE Access or Conference name
+      - name: summary
+        label: Abstract / Short summary
+        type: text
+      - name: files
+        label: Paper PDF & slides
+        type: file
+        description: >-
+          Upload your paper PDF, presentation slides, or supplementary documents.
+          Uploaded PDFs automatically display a Read PDF button and an inline
+          reader on the page.
+        options:
+          media: documents
+          multiple: true
+          unique: true
+      - name: images
+        label: Figures / Diagrams (optional)
+        type: image
+        options:
+          media: images
+          multiple: true
+          unique: true
+      - name: date
+        label: Publication / Preprint date
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: endDate
+        label: End date (optional)
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: tags
+        label: Keywords / Topics
+        type: string
+        list: true
+      - name: details
+        label: Publication details (e.g. Venue, DOI, Status, Accuracy)
+        component: detail
+        list: true
+      - name: links
+        label: External links (DOI, IEEE, arXiv, Code, Dataset)
+        component: link
+        list: true
+      - name: highlights
+        label: Key contributions / CV bullet points (optional)
+        type: string
+        list: true
+      - name: body
+        label: Full write-up
+        type: rich-text
+        description: >-
+          Write your full content here. To add an image between paragraphs,
+          place your cursor on a new line between paragraphs and click the Image
+          icon in the toolbar (or switch to Markdown mode and write
+          ![Caption](/images/your-image.png)).
+        options:
+          format: markdown
+          media: images
+          switcher: true
+      - name: showOnCv
+        label: Include on CV
+        type: boolean
+        default: true
+      - name: order
+        label: Display order
+        type: number
+        default: 0
+      - name: published
+        label: Published
+        type: boolean
+        default: true
+
   - name: items
     label: Custom section items
-    description: Add entries to any custom section you create (such as Blog, Research, Awards, or Anime).
+    description: Add entries to any other custom section you create (such as Blog, Awards, or Anime).
     type: collection
     path: content/items
     format: yaml-frontmatter

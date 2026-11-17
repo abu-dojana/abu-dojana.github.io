@@ -132,9 +132,31 @@ describe('collections, galleries, and flexible sections', () => {
       published: true,
     });
 
+    writeMd(root, 'sections', 'research', {
+      title: 'Research',
+      slug: 'research',
+      type: 'general',
+      order: 6,
+      published: true,
+      showInNavigation: true,
+    });
+    fs.mkdirSync(path.join(root, 'research'), { recursive: true });
+    writeMd(root, 'research', 'ssemonet-xai', {
+      title: 'SSEmoNet-XAI',
+      summary: 'Multimodal emotion recognition.',
+      published: true,
+    });
+    fs.mkdirSync(path.join(root, 'items', 'research'), { recursive: true });
+    writeMd(root, path.join('items', 'research'), 'subfolder-paper', {
+      title: 'Subfolder Paper',
+      published: true,
+    });
+
     const site = getSite(root);
     const animeSection = site.sections.find(s => s.slug === 'anime')!;
+    const researchSection = site.sections.find(s => s.slug === 'research')!;
     expect(animeSection.items).toHaveLength(2);
+    expect(researchSection.items.map(i => i.slug)).toEqual(['ssemonet-xai', 'subfolder-paper']);
     expect(animeSection.items[0].files).toEqual(['/files/review-notes.pdf']);
     expect(animeSection.items[1].files).toEqual(['/files/paper.pdf']);
     expect(isPdfUrl('/files/paper.pdf')).toBe(true);
@@ -145,7 +167,7 @@ describe('collections, galleries, and flexible sections', () => {
     expect(sectionUrl(animeSection)).toBe('/anime/');
 
     const nav = getNavigation(site);
-    expect(nav.map(item => navHref(item))).toEqual(['/', '/anime/', '/cv/']);
+    expect(nav.map(item => navHref(item))).toEqual(['/', '/anime/', '/research/', '/cv/']);
   });
 
   it('auto-hides empty sections and respects published / showInNavigation / about toggles', () => {

@@ -286,11 +286,17 @@ export function renderMarkdown(body: string): string {
 
 function files(folder: string, extension: string): string[] {
   if (!fs.existsSync(folder)) return [];
-  return fs
-    .readdirSync(folder)
-    .filter(file => file.endsWith(extension))
-    .sort()
-    .map(file => path.join(folder, file));
+  const results: string[] = [];
+  const entries = fs.readdirSync(folder, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+  for (const entry of entries) {
+    const fullPath = path.join(folder, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...files(fullPath, extension));
+    } else if (entry.isFile() && entry.name.endsWith(extension)) {
+      results.push(fullPath);
+    }
+  }
+  return results;
 }
 
 function parseFile<T>(filename: string, schema: z.ZodType<T>, markdown = false): T & { body: string } {
@@ -690,12 +696,31 @@ export function getSite(root = path.resolve('content')): SiteContent {
     sectionBySlugOrId.set(section.id, section);
   }
 
+  const dedicatedFolders = new Set(['projects', 'experience', 'education', 'items', 'sections']);
+  const itemsRoot = path.join(root, 'items');
+  const customItemSources: Array<{ filename: string; defaultSection: string }> = files(itemsRoot, '.md').map(
+    filename => {
+      const relDir = path.dirname(path.relative(itemsRoot, filename));
+      const topFolder = relDir && relDir !== '.' ? relDir.split(path.sep)[0] : '';
+      return { filename, defaultSection: topFolder };
+    },
+  );
+
+  for (const section of sections) {
+    if (section.type === 'general' && !dedicatedFolders.has(section.slug)) {
+      for (const filename of files(path.join(root, section.slug), '.md')) {
+        customItemSources.push({ filename, defaultSection: section.slug });
+      }
+    }
+  }
+
   const customItems = sortItems(
-    files(path.join(root, 'items'), '.md').map(filename => {
+    customItemSources.map(({ filename, defaultSection }) => {
       const parsed = parseFile(filename, customItemSchema, true);
       const slug = resolveSlug(parsed.slug, filename, parsed.title);
-      const owner = sectionBySlugOrId.get(parsed.section);
-      const sectionSlug = owner?.slug || parsed.section;
+      const rawSection = parsed.section || defaultSection;
+      const owner = sectionBySlugOrId.get(rawSection);
+      const sectionSlug = owner?.slug || rawSection;
       return createBaseItem({
         id: parsed.id,
         slug,
